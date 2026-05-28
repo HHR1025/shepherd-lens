@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Shepherd Lens",
+  "description": "See how algorithms shape your attention.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Shepherd Lens"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://youtube.com/*", "*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": ["*://youtube.com/*", "*://*.youtube.com/*"],
+  "permissions": ["activeTab", "scripting", "storage"]
+}

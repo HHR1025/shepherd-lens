@@ -4,91 +4,165 @@
 
 See how algorithms shape your attention.
 
-Internal Codename:
-
-Electronic Shepherd Prototype
+Internal codename: Electronic Shepherd Prototype
 
 ---
 
-# 1. Vision
+# 1. Project Framing
 
-Shepherd Lens is an AI-native Chrome Extension that visualizes the cognitive environment created by recommendation algorithms.
+Shepherd Lens is an AI-native experimental Chrome Extension for interpreting recommendation atmospheres.
 
-The system analyzes:
+It is not yet a complete cognitive analysis system. The current project should be understood in three layers:
 
-* social media feeds
-* recommendation structures
-* attention environments
-* emotional atmosphere
-* information topology
+* Current Prototype: what works today
+* Experimental Layer: what the next stages will test
+* Long-Term Vision: what the project is ultimately exploring
 
-The goal is NOT:
-
-* political classification
-* psychological diagnosis
-* misinformation policing
-
-Instead, the project aims to:
-
-Make invisible algorithmic environments visible.
-
-The system should feel like:
-
-* Spotify Wrapped for cognition
-* a cyberpunk HUD for social media
-* an AI-powered attention mirror
+This distinction matters. Shepherd Lens should not pretend that atmospheric language is the same thing as real attention modeling.
 
 ---
 
-# 2. Core Philosophy
+# 2. Current Prototype
 
-This project is NOT:
+Current real capability:
 
-* a productivity tool
-* a moral lecture tool
-* a political detector
-* an enterprise analytics dashboard
+* Chrome Extension Manifest V3
+* YouTube content script injection
+* background service worker
+* React-based floating sidebar
+* TailwindCSS styling
+* Framer Motion animation
+* collapsible cinematic UI
+* placeholder atmosphere text
 
-This project SHOULD feel:
+Current sidebar values are demo placeholders:
 
-* ambient
-* reflective
-* atmospheric
-* AI-native
-* futuristic
-* slightly uncanny
+* Current Feed Atmosphere: emotionally accelerated
+* Algorithmic Pressure: moderate
+* Attention Climate: unstable
+
+Important:
+
+The current prototype does not yet perform real AI analysis, emotion detection, feed extraction, embeddings, topology analysis, or longitudinal tracking.
+
+Its purpose is to prove that the extension can enter YouTube, render reliably, and establish the first visible interface surface.
+
+---
+
+# 3. Near-Term Experimental Layer
+
+The next meaningful stage is not more glow effects.
+
+The next meaningful stage is attention environment inference.
+
+This means building a pipeline where feed content produces visible signals before any LLM interpretation happens.
+
+Recommended pipeline:
+
+```text
+visible feed
+-> feed extraction
+-> statistical attention signals
+-> optional embeddings
+-> pattern extraction
+-> LLM interpretation
+-> atmospheric interface
+```
+
+The system should avoid becoming:
+
+```text
+feed
+-> GPT
+-> cool-sounding words
+```
+
+That would be too hollow.
+
+---
+
+# 4. Attention Signals
+
+The project should define measurable attention signals before claiming deeper analysis.
+
+Initial signals to explore:
+
+| Signal | Possible method |
+| --- | --- |
+| stimulation density | title length, punctuation, capitalization, thumbnail/title hook patterns |
+| conflict saturation | conflict keyword frequency and topic framing |
+| novelty density | embedding distance between visible recommendations |
+| repetition loops | clustering repeated channels, topics, or similar titles |
+| attention fragmentation | topic switching frequency across visible feed items |
+| emotional volatility | shifts in affective language across recommendations |
+| short-form pressure | duration distribution and short-video ratio |
+| topic concentration | clustering visible feed items by semantic similarity |
+
+These signals are experimental indicators, not objective psychological measurements.
+
+---
+
+# 5. Product Philosophy
+
+The product should never:
+
+* morally lecture the user
+* diagnose psychology
+* claim objective truth
+* classify ideology with certainty
+* pretend placeholder words are real analysis
 
 Avoid:
 
-* “You are addicted”
-* “You are radicalized”
-* “This is misinformation”
+* You are addicted
+* You are radicalized
+* This is misinformation
+* Negative sentiment: 42%
+* Anger: 0.7
 
 Prefer:
 
-* “Algorithmic pressure increasing”
-* “Attention rhythm unstable”
-* “Informational diversity decreasing”
-* “Emotionally accelerated feed detected”
+* Algorithmic pressure may be increasing
+* Attention rhythm appears unstable
+* Informational diversity appears reduced
+* This feed shows high stimulation density
+* Conflict framing appears elevated
+
+Tone:
+
+* reflective
+* atmospheric
+* ambient
+* AI-native
+* slightly uncanny
+* honest about uncertainty
 
 ---
 
-# 3. Product Direction
+# 6. Long-Term Vision
 
-The product acts as:
-
-* a cognitive weather system
-* an algorithmic atmosphere analyzer
-* an attention environment observer
-* a recommendation-system mirror
+The long-term vision is an AI-native cognitive interface layer between humans and recommendation systems.
 
 The project explores:
 
-“How recommendation systems shape attention and cognition over time.”
+How recommendation systems shape attention and cognition over time.
+
+The goal is to make invisible algorithmic environments more visible, without pretending to diagnose the user.
+
+Long-term capabilities may include:
+
+* feed topology
+* semantic clustering
+* repetition density analysis
+* longitudinal drift tracking
+* algorithmic persona generation
+* cognitive weather summaries
+* topic concentration mapping
+* novelty decay tracking
 
 ---
 
-# 4. Technical Stack
+# 7. Technical Stack
 
 ## Frontend
 
@@ -99,36 +173,30 @@ The project explores:
 * shadcn/ui
 * Framer Motion
 
----
-
 ## Chrome Extension
 
-Manifest V3
-
-Use:
-
+* Manifest V3
 * content scripts
 * background service worker
-* side panel injection
 * browser storage API
-* message passing system
-
----
+* message passing
+* injected sidebar UI
 
 ## Backend
+
+Planned:
 
 * Python
 * FastAPI
 
-Responsibilities:
+Backend responsibilities:
 
-* AI orchestration
-* feed analysis
+* feed analysis orchestration
+* signal calculation
+* LLM interpretation
 * embeddings
 * longitudinal analysis
 * topology calculations
-
----
 
 ## Database
 
@@ -138,26 +206,29 @@ Initially:
 
 Later:
 
-* PostgreSQL + pgvector
-
----
+* PostgreSQL
+* pgvector
 
 ## AI Layer
 
-Use:
+Initial AI layer:
 
 * OpenAI API
 
-Tasks:
+Possible tasks:
 
-* atmosphere analysis
+* atmospheric interpretation
 * cognitive weather generation
 * algorithmic persona generation
 * trend summarization
 
+Important:
+
+The LLM should interpret extracted structures and signals. It should not be the only source of truth.
+
 ---
 
-# 5. Supported Platforms
+# 8. Supported Platforms
 
 ## MVP
 
@@ -174,33 +245,11 @@ Tasks:
 
 ---
 
-# 6. UI Design Philosophy
+# 9. UI Design Philosophy
 
-VERY IMPORTANT.
+The UI matters, but it should support the model rather than hide the absence of one.
 
-This project heavily depends on:
-
-* atmosphere
-* visual identity
-* interaction feel
-
-UI inspiration:
-
-* Black Mirror
-* cyberpunk HUD
-* neural interfaces
-* Spotify Wrapped
-* sci-fi diagnostics
-
-Avoid:
-
-* corporate SaaS appearance
-* spreadsheets
-* enterprise dashboards
-
----
-
-# 7. Visual Keywords
+The interface should feel:
 
 * ambient
 * translucent
@@ -210,22 +259,27 @@ Avoid:
 * elegant
 * slightly dystopian
 
+Avoid:
+
+* enterprise dashboards
+* spreadsheets
+* corporate SaaS appearance
+* empty cyberpunk language without evidence
+
 ---
 
-# 8. Development Philosophy
+# 10. Development Philosophy
 
-IMPORTANT:
-
-This project should be built incrementally.
+Build incrementally.
 
 Prioritize:
 
 * working demos
 * visible progress
-* iterative development
+* honest project status
+* measurable signals
+* explainable interpretation
 * strong UX
-* strong atmosphere
-* AI-native interaction
 
 Avoid:
 
@@ -233,90 +287,69 @@ Avoid:
 * premature optimization
 * giant rewrites
 * massive feature explosions
+* overstating current capability
 
 ---
 
-# 9. Development Workflow
+# 11. Development Workflow
 
-## Core Workflow
+Core workflow:
 
+```text
 Issue
-↓
-Codex implementation
-↓
-Local testing
-↓
-Commit
-↓
-Push
-↓
-Next Issue
+-> Codex implementation
+-> local testing
+-> commit
+-> push
+-> next issue
+```
 
----
-
-# 10. Git Workflow
-
-Every completed stage must be committed.
+Every completed stage should be committed.
 
 Example:
 
+```bash
 git add .
-git commit -m "Stage 2 sidebar injection working"
+git commit -m "Stage 1 sidebar injection working"
 git push
-
----
-
-# 11. Codex Workflow
-
-IMPORTANT:
-
-Do NOT ask Codex to:
-
-* build the entire project at once
-* redesign everything
-* generate giant monolithic systems
-
-Instead:
-
-* use small focused tasks
-* incremental development
-* stage-based implementation
-
-GOOD:
-
-“Inject a floating sidebar into YouTube pages.”
-
-BAD:
-
-“Build the entire Electronic Shepherd platform.”
+```
 
 ---
 
 # 12. First Real Milestone
 
-The first successful milestone is NOT:
+The first milestone is:
 
-* embeddings
-* topology analysis
-* longitudinal tracking
-
-The first successful milestone is:
-
+```text
 YouTube page
-→ sidebar injected
-→ feed titles extracted
-→ atmosphere rendered
+-> sidebar injected
+-> placeholder atmosphere rendered
+```
 
-Once this works:
-the project is alive.
+Status:
+
+Completed on 2026-05-28.
+
+What it proves:
+
+* the extension loads
+* content script injection works
+* React rendering works inside YouTube
+* the project has a visible interface surface
+
+What it does not prove:
+
+* real feed analysis
+* emotion detection
+* attention modeling
+* longitudinal tracking
+* topology analysis
 
 ---
 
 # 13. Development Stages
 
----
-
-## STAGE 0 — Project Initialization
+## Stage 0: Project Initialization
 
 Goal:
 Create clean architecture.
@@ -325,31 +358,37 @@ Tasks:
 
 * setup repo
 * setup Next.js
-* setup extension folder
-* setup backend folder
 * setup TypeScript
 * setup TailwindCSS
 
+Status:
+Mostly complete.
+
 ---
 
-## STAGE 1 — Sidebar Injection
+## Stage 1: Sidebar Injection
 
 Goal:
 Inject floating sidebar into YouTube.
 
 Requirements:
 
-* dark UI
-* translucent appearance
+* Manifest V3
+* content script
+* background service worker
+* dark translucent UI
 * collapsible panel
 * React rendering
 * Framer Motion animation
+
+Status:
+Complete.
 
 No AI analysis yet.
 
 ---
 
-## STAGE 2 — Feed Extraction
+## Stage 2: Feed Extraction
 
 Goal:
 Extract visible YouTube feed data.
@@ -357,14 +396,62 @@ Extract visible YouTube feed data.
 Requirements:
 
 * titles
-* descriptions
+* descriptions where visible
 * channels
+* video durations where visible
 * dynamic feed updates
 * infinite scroll support
+* duplicate avoidance
+
+Output shape:
+
+```json
+[
+  {
+    "title": "...",
+    "channel": "...",
+    "description": "...",
+    "duration": "...",
+    "url": "..."
+  }
+]
+```
 
 ---
 
-## STAGE 3 — Backend API
+## Stage 3: Local Attention Signals
+
+Goal:
+Turn extracted feed items into measurable experimental signals.
+
+Initial metrics:
+
+* stimulation density
+* conflict saturation
+* novelty density
+* repetition density
+* topic concentration
+* attention fragmentation
+
+This stage should exist before full LLM interpretation.
+
+---
+
+## Stage 4: Mock Analysis UI
+
+Goal:
+Render analysis from local signals without backend dependency.
+
+Requirements:
+
+* loading state
+* error state
+* signal cards
+* transparent explanation of placeholder or heuristic status
+
+---
+
+## Stage 5: Backend API
 
 Goal:
 Create FastAPI analysis service.
@@ -373,43 +460,33 @@ Requirements:
 
 * POST /analyze-feed
 * receive feed JSON
-* return atmosphere analysis
+* receive calculated signals
+* return structured atmosphere analysis
 
 ---
 
-## STAGE 4 — Frontend Integration
+## Stage 6: LLM Interpretation Layer
 
 Goal:
-Connect extension to backend.
+Use an LLM to interpret feed structures and attention signals.
 
-Requirements:
+The LLM should receive:
 
-* send feed snapshots
-* render live analysis
-* loading states
-* error handling
+* extracted feed items
+* calculated metrics
+* topic clusters where available
+* clear safety and uncertainty instructions
 
----
+The LLM should return:
 
-## STAGE 5 — Atmosphere UI
-
-Goal:
-Create cinematic AI-native interface.
-
-Requirements:
-
-* animated atmosphere cards
-* stimulation meter
-* diversity meter
-* futuristic typography
-
-Avoid:
-
-* enterprise dashboard appearance
+* atmosphere labels
+* cognitive weather summary
+* evidence-based explanation
+* uncertainty notes
 
 ---
 
-## STAGE 6 — Algorithmic Persona
+## Stage 7: Algorithmic Persona
 
 Goal:
 Generate atmospheric AI personas.
@@ -418,30 +495,21 @@ Examples:
 
 * Late-Night Doomscroller
 * Conflict-Reactive Explorer
+* Fast-Stimulation Seeker
 * Endless Scroll Wanderer
 
----
-
-## STAGE 7 — Cognitive Weather
-
-Goal:
-Create weather-style interpretation layer.
-
-Examples:
-
-* emotionally accelerated
-* outrage-heavy
-* low novelty
+Persona output must remain probabilistic and non-diagnostic.
 
 ---
 
-## STAGE 8 — Local Historical Tracking
+## Stage 8: Local Historical Tracking
 
 Goal:
 Store long-term feed history.
 
 Track:
 
+* feed snapshots
 * atmosphere history
 * stimulation scores
 * diversity changes
@@ -449,20 +517,21 @@ Track:
 
 ---
 
-## STAGE 9 — Longitudinal Analysis
+## Stage 9: Longitudinal Analysis
 
 Goal:
-Detect cognitive drift over time.
+Detect attention environment drift over time.
 
 Examples:
 
-* outrage exposure increased
+* conflict exposure increased
 * long-form exposure decreased
 * informational diversity dropped
+* repetition loops intensified
 
 ---
 
-## STAGE 10 — Feed Topology
+## Stage 10: Feed Topology
 
 Goal:
 Visualize information structure.
@@ -477,18 +546,22 @@ Tasks:
 
 ---
 
-## STAGE 11 — Visual Polish
+## Stage 11: Visual Polish
 
 Goal:
-Finalize atmosphere and UX.
+Polish atmosphere and UX after the signal pipeline exists.
 
 Add:
 
 * glow effects
-* neural animations
+* neural animation accents
 * smooth transitions
 * translucent panels
 * cinematic typography
+
+Important:
+
+Visual polish should not outrun analytical substance.
 
 ---
 
@@ -501,53 +574,28 @@ Every major task should become:
 
 Avoid giant Issues.
 
-GOOD:
-“Implement YouTube sidebar injection”
+Good:
 
-BAD:
-“Build full AI cognitive platform”
+* Implement YouTube sidebar injection
+* Extract visible YouTube feed titles
+* Add local stimulation density metric
 
----
+Bad:
 
-# 15. Commit Style
-
-Examples:
-
-Stage 1 sidebar injection working
-
-Add YouTube feed extraction
-
-Implement FastAPI atmosphere endpoint
-
-Add algorithmic persona UI
-
-Add longitudinal tracking system
+* Build full AI cognitive platform
 
 ---
 
-# 16. Long-Term Vision
+# 15. Current Priority
 
-The long-term vision is:
+Current priority after Stage 1:
 
-An AI-native cognitive interface layer between humans and recommendation systems.
+```text
+YouTube feed extraction
+-> local attention signals
+-> evidence-backed atmosphere rendering
+```
 
-The project exists to:
+The next task should not be more visual polish.
 
-Make invisible algorithmic environments visible.
-
----
-
-# 17. Current Priority
-
-CURRENT PRIORITY:
-
-Get the first real working prototype alive.
-
-Goal:
-
-YouTube
-→ sidebar injection
-→ feed extraction
-→ atmosphere rendering
-
-Everything else comes later.
+The next task should define and implement the first real attention signals.
