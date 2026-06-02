@@ -81,7 +81,42 @@ That would be too hollow.
 
 ---
 
-# 4. Attention Signals
+# 4. Core Product Bet
+
+Shepherd Lens becomes useful only when it tracks recommendation environments over time.
+
+Single-page analysis is only a diagnostic snapshot. It can show that the extension is observing the feed, but it is not the main product value.
+
+The real value comes from:
+
+* detecting recommendation drift across days and weeks
+* noticing repeated topic loops
+* comparing the current feed with previous snapshots
+* showing how attention pressure changes over time
+* identifying when informational variety narrows or expands
+* estimating what type of viewer the algorithm appears to be optimizing for
+
+The project should therefore move quickly from:
+
+```text
+current page score
+```
+
+to:
+
+```text
+feed history
+-> drift comparison
+-> repeated loops
+-> changing algorithmic persona
+-> evidence-backed reflection
+```
+
+This is the difference between a decorative dashboard and a useful recommendation-system mirror.
+
+---
+
+# 5. Attention Signals
 
 The project should define measurable attention signals before claiming deeper analysis.
 
@@ -102,7 +137,7 @@ These signals are experimental indicators, not objective psychological measureme
 
 ---
 
-# 5. Product Philosophy
+# 6. Product Philosophy
 
 The product should never:
 
@@ -139,7 +174,7 @@ Tone:
 
 ---
 
-# 6. Long-Term Vision
+# 7. Long-Term Vision
 
 The long-term vision is an AI-native cognitive interface layer between humans and recommendation systems.
 
@@ -155,14 +190,17 @@ Long-term capabilities may include:
 * semantic clustering
 * repetition density analysis
 * longitudinal drift tracking
+* recommendation drift comparison
+* repeated topic loop detection
 * algorithmic persona generation
+* changing algorithmic persona over time
 * cognitive weather summaries
 * topic concentration mapping
 * novelty decay tracking
 
 ---
 
-# 7. Technical Stack
+# 8. Technical Stack
 
 ## Frontend
 
@@ -228,7 +266,7 @@ The LLM should interpret extracted structures and signals. It should not be the 
 
 ---
 
-# 8. Supported Platforms
+# 9. Supported Platforms
 
 ## MVP
 
@@ -245,7 +283,7 @@ The LLM should interpret extracted structures and signals. It should not be the 
 
 ---
 
-# 9. UI Design Philosophy
+# 10. UI Design Philosophy
 
 The UI matters, but it should support the model rather than hide the absence of one.
 
@@ -268,7 +306,7 @@ Avoid:
 
 ---
 
-# 10. Development Philosophy
+# 11. Development Philosophy
 
 Build incrementally.
 
@@ -291,7 +329,7 @@ Avoid:
 
 ---
 
-# 11. Development Workflow
+# 12. Development Workflow
 
 Core workflow:
 
@@ -316,7 +354,7 @@ git push
 
 ---
 
-# 12. First Real Milestone
+# 13. First Real Milestone
 
 The first milestone is:
 
@@ -347,7 +385,7 @@ What it does not prove:
 
 ---
 
-# 13. Development Stages
+# 14. Development Stages
 
 ## Stage 0: Project Initialization
 
@@ -362,7 +400,7 @@ Tasks:
 * setup TailwindCSS
 
 Status:
-Mostly complete.
+Complete.
 
 ---
 
@@ -417,6 +455,9 @@ Output shape:
 ]
 ```
 
+Status:
+Complete.
+
 ---
 
 ## Stage 3: Local Attention Signals
@@ -435,23 +476,44 @@ Initial metrics:
 
 This stage should exist before full LLM interpretation.
 
+Status:
+Complete.
+
 ---
 
-## Stage 4: Mock Analysis UI
+## Stage 4: Local History Tracking
 
 Goal:
-Render analysis from local signals without backend dependency.
+Store feed snapshots and signal snapshots locally so Shepherd Lens can compare recommendation environments over time.
 
 Requirements:
 
-* loading state
-* error state
-* signal cards
-* transparent explanation of placeholder or heuristic status
+* save extracted feed snapshots
+* save local attention signal snapshots
+* store timestamped records in browser storage
+* avoid unbounded storage growth
+* expose recent snapshot count in the sidebar
+* prepare comparison windows such as current vs previous session
 
 ---
 
-## Stage 5: Backend API
+## Stage 5: Drift Comparison
+
+Goal:
+Detect simple recommendation-environment changes from stored local history.
+
+Requirements:
+
+* compare current signals with previous snapshots
+* detect rising or falling stimulation density
+* detect rising or falling conflict saturation
+* detect repeated channels or topic loops
+* detect novelty decay
+* render a concise local comparison summary
+
+---
+
+## Stage 6: Backend API
 
 Goal:
 Create FastAPI analysis service.
@@ -461,11 +523,12 @@ Requirements:
 * POST /analyze-feed
 * receive feed JSON
 * receive calculated signals
+* receive local history context where appropriate
 * return structured atmosphere analysis
 
 ---
 
-## Stage 6: LLM Interpretation Layer
+## Stage 7: LLM Interpretation Layer
 
 Goal:
 Use an LLM to interpret feed structures and attention signals.
@@ -486,7 +549,7 @@ The LLM should return:
 
 ---
 
-## Stage 7: Algorithmic Persona
+## Stage 8: Algorithmic Persona
 
 Goal:
 Generate atmospheric AI personas.
@@ -499,21 +562,6 @@ Examples:
 * Endless Scroll Wanderer
 
 Persona output must remain probabilistic and non-diagnostic.
-
----
-
-## Stage 8: Local Historical Tracking
-
-Goal:
-Store long-term feed history.
-
-Track:
-
-* feed snapshots
-* atmosphere history
-* stimulation scores
-* diversity changes
-* trend evolution
 
 ---
 
@@ -565,7 +613,7 @@ Visual polish should not outrun analytical substance.
 
 ---
 
-# 14. Issue Management Rules
+# 15. Issue Management Rules
 
 Every major task should become:
 
@@ -586,16 +634,16 @@ Bad:
 
 ---
 
-# 15. Current Priority
+# 16. Current Priority
 
-Current priority after Stage 1:
+Current priority after Stage 3:
 
 ```text
-YouTube feed extraction
--> local attention signals
--> evidence-backed atmosphere rendering
+local history tracking
+-> drift comparison
+-> evidence-backed reflection over time
 ```
 
 The next task should not be more visual polish.
 
-The next task should define and implement the first real attention signals.
+The next task should make recommendation drift visible.

@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
+import { calculateAttentionSignals } from "./attention-signals";
 import { extractVisibleFeedItems, normalizeKey, type FeedItem } from "./feed-extractor";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
 const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
-const UI_VERSION = "stage-2-feed-extraction";
+const UI_VERSION = "stage-3-attention-signals";
 const MAX_VISIBLE_FEED_ITEMS = 60;
 
 type FeedUpdateEvent = CustomEvent<FeedItem[]>;
@@ -57,6 +58,7 @@ function AtmosphereSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const feedItems = useFeedItems();
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
+  const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
   const status = feedItems.length > 0 ? "watching page" : "scanning page";
   const itemLabel = feedItems.length === 1 ? "item" : "items";
   const stats = useMemo(
@@ -135,6 +137,32 @@ function AtmosphereSidebar() {
 
               <section>
                 <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
+                  <span>local signals</span>
+                  <span>heuristic</span>
+                </div>
+                <div className="space-y-2">
+                  {signalSummary.signals.map((signal) => (
+                    <div className="space-y-1.5" key={signal.id}>
+                      <div className="flex items-center justify-between gap-3 text-[12px]">
+                        <span className="text-stone-400">{signal.label}</span>
+                        <span className="font-medium text-stone-100">
+                          {signal.value}
+                        </span>
+                      </div>
+                      <div className="h-1 overflow-hidden rounded-full bg-white/10">
+                        <motion.div
+                          className="h-full rounded-full bg-stone-300"
+                          animate={{ width: `${signal.value}%` }}
+                          transition={{ duration: 0.38, ease: "easeOut" }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section>
+                <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
                   <span>sample titles</span>
                   <span>{sampleItems.length}/5</span>
                 </div>
@@ -162,14 +190,14 @@ function AtmosphereSidebar() {
 
               <div>
                 <div className="flex items-center justify-between text-[11px] text-stone-500">
-                  <span>data layer</span>
-                  <span>live DOM</span>
+                  <span>model</span>
+                  <span>local only</span>
                 </div>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                   <motion.div
                     className="h-full rounded-full bg-stone-300"
                     initial={{ width: "12%" }}
-                    animate={{ width: feedItems.length > 0 ? "72%" : "28%" }}
+                    animate={{ width: signalSummary.itemCount > 0 ? "72%" : "28%" }}
                     transition={{ duration: 0.65, ease: "easeOut" }}
                   />
                 </div>
@@ -221,8 +249,8 @@ function injectSidebar() {
       <div style="font-size: 11px; color: rgba(214, 211, 209, .72);">
         Shepherd Lens
       </div>
-      <div style="margin-top: 4px; font-size: 16px; font-weight: 650;">Feed observation</div>
-      <div style="margin-top: 14px; opacity: .62;">scanning visible recommendations...</div>
+      <div style="margin-top: 4px; font-size: 16px; font-weight: 650;">Attention signals</div>
+      <div style="margin-top: 14px; opacity: .62;">calculating local heuristics...</div>
     </aside>
   `;
 
