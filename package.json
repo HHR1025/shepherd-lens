@@ -7,7 +7,8 @@
     "build": "next build",
     "build:extension": "vite build --config vite.extension.config.ts",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "dependencies": {
     "next": "16.2.6",
@@ -24,8 +25,10 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "framer-motion": "^12.40.0",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vite": "^8.0.14"
+    "vite": "^8.0.14",
+    "vitest": "^4.1.8"
   }
 }

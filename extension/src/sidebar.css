@@ -11,33 +11,3 @@
 button {
   font: inherit;
 }
-
-@keyframes sl-atmospheric-scan {
-  0% {
-    transform: translateY(-120%);
-    opacity: 0;
-  }
-
-  18%,
-  70% {
-    opacity: 0.5;
-  }
-
-  100% {
-    transform: translateY(460%);
-    opacity: 0;
-  }
-}
-
-#shepherd-lens-react-root::after {
-  animation: sl-atmospheric-scan 5.4s ease-in-out infinite;
-  background: linear-gradient(180deg, transparent, rgba(125, 249, 255, 0.18), transparent);
-  content: "";
-  height: 86px;
-  left: 0;
-  pointer-events: none;
-  position: fixed;
-  right: 0;
-  top: 0;
-  z-index: 2147483647;
-}
