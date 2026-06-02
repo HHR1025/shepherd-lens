@@ -495,6 +495,9 @@ Requirements:
 * expose recent snapshot count in the sidebar
 * prepare comparison windows such as current vs previous session
 
+Status:
+Complete.
+
 ---
 
 ## Stage 5: Drift Comparison
@@ -636,11 +639,11 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 3:
+Current priority after Stage 4:
 
 ```text
-local history tracking
--> drift comparison
+drift comparison
+-> repeated loop detection
 -> evidence-backed reflection over time
 ```
 

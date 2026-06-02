@@ -3,17 +3,30 @@ import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { calculateAttentionSignals } from "./attention-signals";
 import { extractVisibleFeedItems, normalizeKey, type FeedItem } from "./feed-extractor";
+import {
+  getHistoryStatus,
+  readHistory,
+  saveHistorySnapshot,
+  type HistoryStatus,
+} from "./history-tracking";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
 const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
-const UI_VERSION = "stage-3-attention-signals";
+const HISTORY_UPDATE_EVENT = "shepherd-lens-history-update";
+const UI_VERSION = "stage-4-local-history";
 const MAX_VISIBLE_FEED_ITEMS = 60;
 
 type FeedUpdateEvent = CustomEvent<FeedItem[]>;
+type HistoryUpdateEvent = CustomEvent<HistoryStatus>;
 
 let extractionTimer: number | undefined;
 let latestFeedItems: FeedItem[] = [];
+let latestHistoryStatus: HistoryStatus = {
+  snapshotCount: 0,
+  lastSnapshotAt: null,
+};
+let saveInFlight = false;
 
 console.info("[Shepherd Lens] content script loaded", window.location.href);
 
@@ -27,6 +40,7 @@ function publishFeedItems() {
       detail: latestFeedItems,
     }),
   );
+  void persistHistorySnapshot(latestFeedItems);
 }
 
 function scheduleFeedExtraction(delay = 120) {
@@ -54,9 +68,92 @@ function useFeedItems() {
   return items;
 }
 
+function useHistoryStatus() {
+  const [status, setStatus] = useState<HistoryStatus>(latestHistoryStatus);
+
+  useEffect(() => {
+    const handleUpdate = (event: Event) => {
+      setStatus((event as HistoryUpdateEvent).detail);
+    };
+
+    window.addEventListener(HISTORY_UPDATE_EVENT, handleUpdate);
+    void refreshHistoryStatus();
+
+    return () => window.removeEventListener(HISTORY_UPDATE_EVENT, handleUpdate);
+  }, []);
+
+  return status;
+}
+
+async function refreshHistoryStatus() {
+  const storage = getChromeStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  const history = await readHistory(storage);
+  publishHistoryStatus(getHistoryStatus(history));
+}
+
+async function persistHistorySnapshot(feedItems: FeedItem[]) {
+  const storage = getChromeStorage();
+
+  if (!storage || saveInFlight) {
+    return;
+  }
+
+  saveInFlight = true;
+
+  try {
+    const result = await saveHistorySnapshot(storage, feedItems, window.location.href);
+    publishHistoryStatus(result.status);
+  } finally {
+    saveInFlight = false;
+  }
+}
+
+function publishHistoryStatus(status: HistoryStatus) {
+  latestHistoryStatus = status;
+  Object.assign(window, {
+    __SHEPHERD_LENS_HISTORY__: latestHistoryStatus,
+  });
+  window.dispatchEvent(
+    new CustomEvent<HistoryStatus>(HISTORY_UPDATE_EVENT, {
+      detail: latestHistoryStatus,
+    }),
+  );
+}
+
+function getChromeStorage() {
+  if (typeof chrome === "undefined") {
+    return null;
+  }
+
+  return chrome.storage?.local ?? null;
+}
+
+function formatLastSnapshot(timestamp: string | null) {
+  if (!timestamp) {
+    return "not saved yet";
+  }
+
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "unknown";
+  }
+
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function AtmosphereSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const feedItems = useFeedItems();
+  const historyStatus = useHistoryStatus();
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
   const status = feedItems.length > 0 ? "watching page" : "scanning page";
@@ -65,8 +162,10 @@ function AtmosphereSidebar() {
     () => [
       { label: "Visible feed", value: `${feedItems.length} ${itemLabel}` },
       { label: "Extraction", value: status },
+      { label: "Snapshots", value: `${historyStatus.snapshotCount}` },
+      { label: "Last saved", value: formatLastSnapshot(historyStatus.lastSnapshotAt) },
     ],
-    [feedItems.length, itemLabel, status],
+    [feedItems.length, historyStatus.lastSnapshotAt, historyStatus.snapshotCount, itemLabel, status],
   );
 
   return (
