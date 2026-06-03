@@ -39,5 +39,8 @@ describe("localization", () => {
     expect(copy.localMeasures).toBe("本地测量");
     expect(copy.measureLabels.channel_concentration).toBe("频道集中度");
     expect(copy.measureLabels.visible_feed_entropy).toBe("推荐熵");
+    expect(copy.views.overview).toBe("概览");
+    expect(copy.views.evidence).toBe("信源");
+    expect(copy.evidence.notTruthScore).toBe("不是真假评分");
   });
 });

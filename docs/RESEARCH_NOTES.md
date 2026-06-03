@@ -110,6 +110,22 @@ Implication for Shepherd Lens:
 * measure novelty decay
 * explain recommendations as an information environment
 
+### Evidence Environment and Verification Friction
+
+Research direction:
+Information environments are shaped not only by what content appears, but also by how easily users can inspect supporting sources.
+
+Useful lesson:
+The product should not decide truth. It should reduce the friction of independent verification.
+
+Implication for Shepherd Lens:
+
+* distinguish evidence availability from truth
+* surface primary sources where possible
+* categorize primary, research, reporting, and reference sources
+* prefer source links over generated conclusions
+* show uncertainty when source discovery is incomplete
+
 ---
 
 ## 3. Metrics Worth Building
@@ -166,6 +182,17 @@ Need user actions:
 * post-watch drift
 * recovery from unwanted topic loops
 
+### Evidence Metrics
+
+Need source discovery:
+
+* evidence availability
+* primary source ratio
+* independent confirmation count
+* source diversity
+* citation visibility
+* verification accessibility
+
 ---
 
 ## 4. Product Principles
@@ -203,6 +230,24 @@ The goal is to help them notice:
 * what it neglects
 * whether their actions change future recommendations
 
+### Avoid Truth Claims
+
+Shepherd Lens should help users navigate evidence.
+
+It should not claim to be a fact checker, truth detector, or misinformation authority.
+
+Correct:
+
+```text
+Primary sources found.
+```
+
+Incorrect:
+
+```text
+This claim is true.
+```
+
 ---
 
 ## 5. Recommended Roadmap Adjustment
@@ -214,11 +259,13 @@ Suggested order:
 1. channel concentration
 2. topic concentration
 3. topic entropy
-4. session timeline
-5. repetition loop detection
-6. simple user experiment mode
-7. backend API
-8. LLM interpretation layer
+4. progressive disclosure UI
+5. session timeline
+6. repetition loop detection
+7. simple user experiment mode
+8. evidence layer
+9. backend API
+10. LLM interpretation layer
 
 The LLM should explain measured structures.
 

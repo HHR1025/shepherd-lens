@@ -538,7 +538,31 @@ Complete.
 
 ---
 
-## Stage 7: Session Timeline and Loop Detection
+## Stage 7: UI Progressive Disclosure
+
+Goal:
+Restructure the sidebar so new features become expandable layers rather than permanent metric walls.
+
+Requirements:
+
+* Overview view
+* Evidence view
+* compact default summaries
+* expandable attention metrics
+* expandable feed structure metrics
+* expandable drift analysis
+* calm non-dashboard interaction model
+
+Reference:
+
+* UI_PHILOSOPHY.md
+
+Status:
+Complete.
+
+---
+
+## Stage 8: Session Timeline and Loop Detection
 
 Goal:
 Show how the recommendation environment changes within and across sessions.
@@ -554,7 +578,7 @@ Requirements:
 
 ---
 
-## Stage 8: User Experiment Mode
+## Stage 9: User Experiment Mode
 
 Goal:
 Support small user-side experiments about recommendation agency.
@@ -569,7 +593,28 @@ Examples:
 
 ---
 
-## Stage 9: Backend API
+## Stage 10: Evidence Layer and Source Navigation
+
+Goal:
+Help users understand the evidence environment surrounding visible recommended content.
+
+Requirements:
+
+* evidence availability indicator
+* source categorization
+* source navigation panel
+* primary source detection where possible
+* independent reporting detection where possible
+* citation visibility detection
+* clear boundary that evidence confidence is not a truth score
+
+Reference:
+
+* EVIDENCE_LAYER.md
+
+---
+
+## Stage 11: Backend API
 
 Goal:
 Create FastAPI analysis service after the local measurement layer is stronger.
@@ -585,7 +630,7 @@ Requirements:
 
 ---
 
-## Stage 10: LLM Interpretation Layer
+## Stage 12: LLM Interpretation Layer
 
 Goal:
 Use an LLM to interpret measured feed structures and attention signals.
@@ -610,7 +655,7 @@ The LLM should explain measured structures, not invent them.
 
 ---
 
-## Stage 11: Algorithmic Persona
+## Stage 13: Algorithmic Persona
 
 Goal:
 Generate atmospheric AI personas only after evidence-backed interpretation exists.
@@ -626,7 +671,7 @@ Persona output must remain probabilistic and non-diagnostic.
 
 ---
 
-## Stage 12: Longitudinal Analysis
+## Stage 14: Longitudinal Analysis
 
 Goal:
 Detect attention environment drift over time.
@@ -640,7 +685,7 @@ Examples:
 
 ---
 
-## Stage 13: Feed Topology
+## Stage 15: Feed Topology
 
 Goal:
 Visualize information structure.
@@ -655,7 +700,7 @@ Tasks:
 
 ---
 
-## Stage 14: Visual Polish
+## Stage 16: Visual Polish
 
 Goal:
 Polish atmosphere and UX after the signal pipeline exists.
@@ -697,14 +742,15 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 6:
+Current priority after Stage 7:
 
 ```text
 session timeline and loop detection
 -> user experiment mode
+-> evidence layer and source navigation
 -> evidence-backed reflection over time
 ```
 
-The next task should not be more visual polish.
+The next task should build on the new layered UI rather than adding another permanent metric section.
 
-The next task should make recommendation drift visible.
+The next task should make recommendation changes visible over time.

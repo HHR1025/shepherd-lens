@@ -29,6 +29,40 @@ export type SidebarCopy = {
   collapse: string;
   expand: string;
   languageToggle: string;
+  views: {
+    overview: string;
+    evidence: string;
+  };
+  overview: {
+    attentionClimate: string;
+    feedDiversity: string;
+    driftSummary: string;
+    localStatus: string;
+    observed: string;
+    stable: string;
+    active: string;
+    quiet: string;
+    partial: string;
+  };
+  sections: {
+    attention: string;
+    feedStructure: string;
+    drift: string;
+    history: string;
+    samples: string;
+  };
+  evidence: {
+    confidence: string;
+    sources: string;
+    primarySources: string;
+    independentReporting: string;
+    sourceDiversity: string;
+    sourceNavigation: string;
+    waiting: string;
+    placeholder: string;
+    notTruthScore: string;
+    comingSoon: string;
+  };
   drift: {
     heading: string;
     waiting: string;
@@ -89,6 +123,40 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
     collapse: "Collapse Shepherd Lens",
     expand: "Expand Shepherd Lens",
     languageToggle: "Switch sidebar language",
+    views: {
+      overview: "Overview",
+      evidence: "Evidence",
+    },
+    overview: {
+      attentionClimate: "Attention climate",
+      feedDiversity: "Feed diversity",
+      driftSummary: "Drift summary",
+      localStatus: "Local status",
+      observed: "observed",
+      stable: "stable",
+      active: "active",
+      quiet: "quiet",
+      partial: "partial",
+    },
+    sections: {
+      attention: "Attention environment",
+      feedStructure: "Feed structure",
+      drift: "Drift analysis",
+      history: "History status",
+      samples: "Recommendation samples",
+    },
+    evidence: {
+      confidence: "Evidence confidence",
+      sources: "Sources",
+      primarySources: "Primary sources",
+      independentReporting: "Independent reporting",
+      sourceDiversity: "Source diversity",
+      sourceNavigation: "Source navigation",
+      waiting: "not active yet",
+      placeholder: "Evidence navigation is reserved for a later stage.",
+      notTruthScore: "not a truth score",
+      comingSoon: "coming soon",
+    },
     drift: {
       heading: "Visible feed drift",
       waiting: "waiting for history",
@@ -155,6 +223,40 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
     collapse: "收起 Shepherd Lens",
     expand: "展开 Shepherd Lens",
     languageToggle: "切换侧栏语言",
+    views: {
+      overview: "概览",
+      evidence: "信源",
+    },
+    overview: {
+      attentionClimate: "注意力气候",
+      feedDiversity: "推荐多样性",
+      driftSummary: "变化摘要",
+      localStatus: "本地状态",
+      observed: "已观察",
+      stable: "稳定",
+      active: "活跃",
+      quiet: "平缓",
+      partial: "局部样本",
+    },
+    sections: {
+      attention: "注意力环境",
+      feedStructure: "推荐结构",
+      drift: "变化分析",
+      history: "历史状态",
+      samples: "推荐样本",
+    },
+    evidence: {
+      confidence: "证据可信度",
+      sources: "信源",
+      primarySources: "一手来源",
+      independentReporting: "独立报道",
+      sourceDiversity: "来源多样性",
+      sourceNavigation: "信源导航",
+      waiting: "尚未启用",
+      placeholder: "信源导航已预留，将在后续阶段接入。",
+      notTruthScore: "不是真假评分",
+      comingSoon: "待接入",
+    },
     drift: {
       heading: "推荐变化",
       waiting: "等待历史样本",
