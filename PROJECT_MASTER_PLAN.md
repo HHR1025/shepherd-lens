@@ -514,12 +514,62 @@ Requirements:
 * detect novelty decay
 * render a concise local comparison summary
 
+Status:
+Complete.
+
 ---
 
-## Stage 6: Backend API
+## Stage 6: Local Measurement Expansion
 
 Goal:
-Create FastAPI analysis service.
+Strengthen the local measurement layer before any backend or LLM interpretation.
+
+Requirements:
+
+* channel concentration
+* topic concentration
+* visible feed entropy
+* source diversity
+* title hook density
+* evidence references for each metric
+
+---
+
+## Stage 7: Session Timeline and Loop Detection
+
+Goal:
+Show how the recommendation environment changes within and across sessions.
+
+Requirements:
+
+* session timeline
+* repeated topic loop detection
+* novelty decay
+* session-to-session similarity
+* recurring channel exposure
+* topic switching speed
+
+---
+
+## Stage 8: User Experiment Mode
+
+Goal:
+Support small user-side experiments about recommendation agency.
+
+Examples:
+
+* before / after search drift
+* before / after watch drift
+* before / after ignore behavior
+* recovery from unwanted topic loops
+* simple intervention notes
+
+---
+
+## Stage 9: Backend API
+
+Goal:
+Create FastAPI analysis service after the local measurement layer is stronger.
 
 Requirements:
 
@@ -528,18 +578,21 @@ Requirements:
 * receive calculated signals
 * receive local history context where appropriate
 * return structured atmosphere analysis
+* preserve uncertainty and evidence references
 
 ---
 
-## Stage 7: LLM Interpretation Layer
+## Stage 10: LLM Interpretation Layer
 
 Goal:
-Use an LLM to interpret feed structures and attention signals.
+Use an LLM to interpret measured feed structures and attention signals.
 
 The LLM should receive:
 
 * extracted feed items
 * calculated metrics
+* drift comparisons
+* evidence references
 * topic clusters where available
 * clear safety and uncertainty instructions
 
@@ -550,12 +603,14 @@ The LLM should return:
 * evidence-based explanation
 * uncertainty notes
 
+The LLM should explain measured structures, not invent them.
+
 ---
 
-## Stage 8: Algorithmic Persona
+## Stage 11: Algorithmic Persona
 
 Goal:
-Generate atmospheric AI personas.
+Generate atmospheric AI personas only after evidence-backed interpretation exists.
 
 Examples:
 
@@ -568,7 +623,7 @@ Persona output must remain probabilistic and non-diagnostic.
 
 ---
 
-## Stage 9: Longitudinal Analysis
+## Stage 12: Longitudinal Analysis
 
 Goal:
 Detect attention environment drift over time.
@@ -582,7 +637,7 @@ Examples:
 
 ---
 
-## Stage 10: Feed Topology
+## Stage 13: Feed Topology
 
 Goal:
 Visualize information structure.
@@ -597,7 +652,7 @@ Tasks:
 
 ---
 
-## Stage 11: Visual Polish
+## Stage 14: Visual Polish
 
 Goal:
 Polish atmosphere and UX after the signal pipeline exists.
@@ -639,11 +694,11 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 4:
+Current priority after Stage 5:
 
 ```text
-drift comparison
--> repeated loop detection
+local measurement expansion
+-> session timeline and loop detection
 -> evidence-backed reflection over time
 ```
 

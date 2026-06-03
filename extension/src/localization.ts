@@ -1,5 +1,7 @@
 export type SidebarLanguage = "en" | "zh";
 
+export type DriftDirection = "rising" | "falling" | "steady";
+
 export type SidebarCopy = {
   brand: string;
   prototype: string;
@@ -24,6 +26,18 @@ export type SidebarCopy = {
   collapse: string;
   expand: string;
   languageToggle: string;
+  drift: {
+    heading: string;
+    waiting: string;
+    steady: string;
+    comparedWith: string;
+    previousSnapshot: string;
+    repeatedChannels: string;
+    topicLoops: string;
+    noneDetected: string;
+    directions: Record<DriftDirection, string>;
+    signalNames: Record<string, string>;
+  };
 };
 
 export const LANGUAGE_STORAGE_KEY = "shepherdLensLanguage";
@@ -59,6 +73,28 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
     collapse: "Collapse Shepherd Lens",
     expand: "Expand Shepherd Lens",
     languageToggle: "Switch sidebar language",
+    drift: {
+      heading: "Visible feed drift",
+      waiting: "waiting for history",
+      steady: "signals steady",
+      comparedWith: "Compared with",
+      previousSnapshot: "previous snapshot",
+      repeatedChannels: "Repeated channels",
+      topicLoops: "Topic loops",
+      noneDetected: "none detected",
+      directions: {
+        rising: "rising",
+        falling: "falling",
+        steady: "steady",
+      },
+      signalNames: {
+        stimulation: "stimulation",
+        conflict: "conflict",
+        novelty: "novelty",
+        repetition: "repetition",
+        short_form: "short-form",
+      },
+    },
   },
   zh: {
     brand: "Shepherd Lens",
@@ -90,6 +126,28 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
     collapse: "收起 Shepherd Lens",
     expand: "展开 Shepherd Lens",
     languageToggle: "切换侧栏语言",
+    drift: {
+      heading: "推荐变化",
+      waiting: "等待历史样本",
+      steady: "整体稳定",
+      comparedWith: "对比基准",
+      previousSnapshot: "上次快照",
+      repeatedChannels: "重复频道",
+      topicLoops: "主题回环",
+      noneDetected: "暂未发现",
+      directions: {
+        rising: "上升",
+        falling: "下降",
+        steady: "基本稳定",
+      },
+      signalNames: {
+        stimulation: "刺激",
+        conflict: "冲突",
+        novelty: "新鲜度",
+        repetition: "重复",
+        short_form: "短内容",
+      },
+    },
   },
 };
 

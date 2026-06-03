@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { calculateAttentionSignals } from "./attention-signals";
+import { compareFeedDrift, type DriftComparison } from "./drift-comparison";
 import { extractVisibleFeedItems, normalizeKey, type FeedItem } from "./feed-extractor";
 import {
   getHistoryStatus,
   readHistory,
   saveHistorySnapshot,
+  type HistoryState,
   type HistoryStatus,
 } from "./history-tracking";
 import {
@@ -22,14 +24,17 @@ import styles from "./sidebar.css?inline";
 const HOST_ID = "shepherd-lens-sidebar-root";
 const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
 const HISTORY_UPDATE_EVENT = "shepherd-lens-history-update";
-const UI_VERSION = "stage-7-language-toggle";
+const UI_VERSION = "stage-8-drift-comparison";
 const MAX_VISIBLE_FEED_ITEMS = 60;
 
 type FeedUpdateEvent = CustomEvent<FeedItem[]>;
-type HistoryUpdateEvent = CustomEvent<HistoryStatus>;
+type HistoryUpdateEvent = CustomEvent<HistoryState>;
 
 let extractionTimer: number | undefined;
 let latestFeedItems: FeedItem[] = [];
+let latestHistoryState: HistoryState = {
+  snapshots: [],
+};
 let latestHistoryStatus: HistoryStatus = {
   snapshotCount: 0,
   lastSnapshotAt: null,
@@ -77,11 +82,11 @@ function useFeedItems() {
 }
 
 function useHistoryStatus() {
-  const [status, setStatus] = useState<HistoryStatus>(latestHistoryStatus);
+  const [history, setHistory] = useState<HistoryState>(latestHistoryState);
 
   useEffect(() => {
     const handleUpdate = (event: Event) => {
-      setStatus((event as HistoryUpdateEvent).detail);
+      setHistory((event as HistoryUpdateEvent).detail);
     };
 
     window.addEventListener(HISTORY_UPDATE_EVENT, handleUpdate);
@@ -90,7 +95,10 @@ function useHistoryStatus() {
     return () => window.removeEventListener(HISTORY_UPDATE_EVENT, handleUpdate);
   }, []);
 
-  return status;
+  return {
+    history,
+    status: getHistoryStatus(history),
+  };
 }
 
 async function refreshHistoryStatus() {
@@ -101,7 +109,7 @@ async function refreshHistoryStatus() {
   }
 
   const history = await readHistory(storage);
-  publishHistoryStatus(getHistoryStatus(history));
+  publishHistoryState(history);
 }
 
 async function persistHistorySnapshot(feedItems: FeedItem[]) {
@@ -115,20 +123,21 @@ async function persistHistorySnapshot(feedItems: FeedItem[]) {
 
   try {
     const result = await saveHistorySnapshot(storage, feedItems, window.location.href);
-    publishHistoryStatus(result.status);
+    publishHistoryState(result.history);
   } finally {
     saveInFlight = false;
   }
 }
 
-function publishHistoryStatus(status: HistoryStatus) {
-  latestHistoryStatus = status;
+function publishHistoryState(history: HistoryState) {
+  latestHistoryState = history;
+  latestHistoryStatus = getHistoryStatus(history);
   Object.assign(window, {
     __SHEPHERD_LENS_HISTORY__: latestHistoryStatus,
   });
   window.dispatchEvent(
-    new CustomEvent<HistoryStatus>(HISTORY_UPDATE_EVENT, {
-      detail: latestHistoryStatus,
+    new CustomEvent<HistoryState>(HISTORY_UPDATE_EVENT, {
+      detail: latestHistoryState,
     }),
   );
 }
@@ -205,9 +214,13 @@ function AtmosphereSidebar() {
   const { language, toggleLanguage } = useSidebarLanguage();
   const copy = getCopy(language);
   const feedItems = useFeedItems();
-  const historyStatus = useHistoryStatus();
+  const { history, status: historyStatus } = useHistoryStatus();
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
+  const driftComparison = useMemo(
+    () => compareFeedDrift(feedItems, history.snapshots),
+    [feedItems, history.snapshots],
+  );
   const status = feedItems.length > 0 ? copy.watchingPage : copy.scanningPage;
   const stats = useMemo(
     () => [
@@ -341,6 +354,8 @@ function AtmosphereSidebar() {
                 </div>
               </section>
 
+              <DriftPanel comparison={driftComparison} language={language} />
+
               <section>
                 <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
                   <span>{copy.sampleTitles}</span>
@@ -388,6 +403,85 @@ function AtmosphereSidebar() {
       </AnimatePresence>
     </motion.aside>
   );
+}
+
+function DriftPanel({
+  comparison,
+  language,
+}: {
+  comparison: DriftComparison;
+  language: SidebarLanguage;
+}) {
+  const copy = getCopy(language);
+  const summary = formatDriftSummary(comparison, language);
+  const repeatedChannels = formatListOrEmpty(
+    comparison.repeatedChannels,
+    copy.drift.noneDetected,
+  );
+  const repeatedTopics = formatListOrEmpty(comparison.repeatedTopics, copy.drift.noneDetected);
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
+        <span>{copy.drift.heading}</span>
+        <span>
+          {comparison.baselineAvailable ? copy.drift.previousSnapshot : copy.drift.waiting}
+        </span>
+      </div>
+      <div className="space-y-2 rounded-lg border border-white/8 bg-white/[0.025] px-3 py-3">
+        <div className="flex items-center justify-between gap-3 text-[12px]">
+          <span className="text-stone-400">{copy.drift.heading}</span>
+          <span className="text-right font-medium text-stone-100">{summary}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[12px]">
+          <span className="text-stone-500">{copy.drift.comparedWith}</span>
+          <span className="text-right text-stone-300">
+            {comparison.baselineAvailable ? copy.drift.previousSnapshot : copy.drift.waiting}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[12px]">
+          <span className="text-stone-500">{copy.drift.repeatedChannels}</span>
+          <span className="max-w-[150px] truncate text-right text-stone-300">
+            {repeatedChannels}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-[12px]">
+          <span className="text-stone-500">{copy.drift.topicLoops}</span>
+          <span className="max-w-[150px] truncate text-right text-stone-300">
+            {repeatedTopics}
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function formatDriftSummary(comparison: DriftComparison, language: SidebarLanguage) {
+  const copy = getCopy(language);
+
+  if (!comparison.baselineAvailable) {
+    return copy.drift.waiting;
+  }
+
+  const activeChanges = comparison.changes.filter((change) => change.direction !== "steady");
+
+  if (activeChanges.length === 0) {
+    return copy.drift.steady;
+  }
+
+  return activeChanges
+    .slice(0, 2)
+    .map((change) => {
+      const signalName = copy.drift.signalNames[change.id] ?? change.label.toLowerCase();
+      const direction = copy.drift.directions[change.direction];
+
+      return language === "zh" ? `${signalName}${direction}` : `${signalName} ${direction}`;
+    })
+    .join(language === "zh" ? "，" : ", ");
+}
+
+function formatListOrEmpty(items: string[], emptyCopy: string) {
+  return items.length > 0 ? items.join(", ") : emptyCopy;
 }
 
 function injectSidebar() {
