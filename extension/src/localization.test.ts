@@ -1,0 +1,40 @@
+import { describe, expect, it } from "vitest";
+import {
+  formatItemCount,
+  getCopy,
+  nextLanguage,
+  normalizeLanguage,
+} from "./localization";
+
+describe("localization", () => {
+  it("defaults unknown language values to English", () => {
+    expect(normalizeLanguage("zh")).toBe("zh");
+    expect(normalizeLanguage("en")).toBe("en");
+    expect(normalizeLanguage("fr")).toBe("en");
+    expect(normalizeLanguage(null)).toBe("en");
+  });
+
+  it("toggles between English and Chinese", () => {
+    expect(nextLanguage("en")).toBe("zh");
+    expect(nextLanguage("zh")).toBe("en");
+  });
+
+  it("formats English item counts with singular and plural copy", () => {
+    expect(formatItemCount(1, "en")).toBe("1 item");
+    expect(formatItemCount(2, "en")).toBe("2 items");
+  });
+
+  it("formats Chinese item counts with natural compact copy", () => {
+    expect(formatItemCount(1, "zh")).toBe("1 条");
+    expect(formatItemCount(12, "zh")).toBe("12 条");
+  });
+
+  it("uses context-aware Chinese sidebar labels", () => {
+    const copy = getCopy("zh");
+
+    expect(copy.visibleFeed).toBe("当前推荐");
+    expect(copy.localSignals).toBe("注意力信号");
+    expect(copy.signalLabels.stimulation).toBe("刺激强度");
+    expect(copy.signalLabels.short_form).toBe("短内容");
+  });
+});

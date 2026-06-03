@@ -9,12 +9,20 @@ import {
   saveHistorySnapshot,
   type HistoryStatus,
 } from "./history-tracking";
+import {
+  formatItemCount,
+  getCopy,
+  LANGUAGE_STORAGE_KEY,
+  nextLanguage,
+  normalizeLanguage,
+  type SidebarLanguage,
+} from "./localization";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
 const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
 const HISTORY_UPDATE_EVENT = "shepherd-lens-history-update";
-const UI_VERSION = "stage-4-local-history";
+const UI_VERSION = "stage-7-language-toggle";
 const MAX_VISIBLE_FEED_ITEMS = 60;
 
 type FeedUpdateEvent = CustomEvent<FeedItem[]>;
@@ -133,15 +141,57 @@ function getChromeStorage() {
   return chrome.storage?.local ?? null;
 }
 
-function formatLastSnapshot(timestamp: string | null) {
+function useSidebarLanguage() {
+  const [language, setLanguage] = useState<SidebarLanguage>("en");
+
+  useEffect(() => {
+    const storage = getChromeStorage();
+
+    if (!storage) {
+      return;
+    }
+
+    let active = true;
+
+    storage.get([LANGUAGE_STORAGE_KEY]).then((result) => {
+      if (active) {
+        setLanguage(normalizeLanguage(result[LANGUAGE_STORAGE_KEY]));
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const toggleLanguage = () => {
+    setLanguage((currentLanguage) => {
+      const updatedLanguage = nextLanguage(currentLanguage);
+      const storage = getChromeStorage();
+
+      void storage?.set({
+        [LANGUAGE_STORAGE_KEY]: updatedLanguage,
+      });
+
+      return updatedLanguage;
+    });
+  };
+
+  return { language, toggleLanguage };
+}
+
+function formatLastSnapshot(
+  timestamp: string | null,
+  fallback: { notSavedYet: string; unknown: string },
+) {
   if (!timestamp) {
-    return "not saved yet";
+    return fallback.notSavedYet;
   }
 
   const date = new Date(timestamp);
 
   if (Number.isNaN(date.getTime())) {
-    return "unknown";
+    return fallback.unknown;
   }
 
   return date.toLocaleTimeString([], {
@@ -152,20 +202,39 @@ function formatLastSnapshot(timestamp: string | null) {
 
 function AtmosphereSidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { language, toggleLanguage } = useSidebarLanguage();
+  const copy = getCopy(language);
   const feedItems = useFeedItems();
   const historyStatus = useHistoryStatus();
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
-  const status = feedItems.length > 0 ? "watching page" : "scanning page";
-  const itemLabel = feedItems.length === 1 ? "item" : "items";
+  const status = feedItems.length > 0 ? copy.watchingPage : copy.scanningPage;
   const stats = useMemo(
     () => [
-      { label: "Visible feed", value: `${feedItems.length} ${itemLabel}` },
-      { label: "Extraction", value: status },
-      { label: "Snapshots", value: `${historyStatus.snapshotCount}` },
-      { label: "Last saved", value: formatLastSnapshot(historyStatus.lastSnapshotAt) },
+      { label: copy.visibleFeed, value: formatItemCount(feedItems.length, language) },
+      { label: copy.extraction, value: status },
+      { label: copy.snapshots, value: `${historyStatus.snapshotCount}` },
+      {
+        label: copy.lastSaved,
+        value: formatLastSnapshot(historyStatus.lastSnapshotAt, {
+          notSavedYet: copy.notSavedYet,
+          unknown: copy.unknown,
+        }),
+      },
     ],
-    [feedItems.length, historyStatus.lastSnapshotAt, historyStatus.snapshotCount, itemLabel, status],
+    [
+      copy.extraction,
+      copy.lastSaved,
+      copy.notSavedYet,
+      copy.snapshots,
+      copy.unknown,
+      copy.visibleFeed,
+      feedItems.length,
+      historyStatus.lastSnapshotAt,
+      historyStatus.snapshotCount,
+      language,
+      status,
+    ],
   );
 
   return (
@@ -178,7 +247,7 @@ function AtmosphereSidebar() {
       <button
         className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-black/55 text-stone-300 shadow-lg backdrop-blur-md transition hover:bg-black/75 hover:text-white"
         type="button"
-        aria-label={collapsed ? "Expand Shepherd Lens" : "Collapse Shepherd Lens"}
+        aria-label={collapsed ? copy.expand : copy.collapse}
         aria-expanded={!collapsed}
         onClick={() => setCollapsed((value) => !value)}
       >
@@ -204,14 +273,24 @@ function AtmosphereSidebar() {
               <header className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-medium text-stone-400">
-                    Shepherd Lens
+                    {copy.brand}
                   </p>
                   <h1 className="mt-1 text-base font-semibold leading-6 text-stone-50">
-                    Feed observation
+                    {copy.heading}
                   </h1>
                 </div>
-                <div className="rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-medium text-stone-300">
-                  Prototype
+                <div className="flex items-center gap-1.5">
+                  <button
+                    className="rounded-full border border-white/10 bg-white/6 px-2.5 py-1 text-[11px] font-medium text-stone-300 transition hover:bg-white/10 hover:text-stone-50"
+                    type="button"
+                    aria-label={copy.languageToggle}
+                    onClick={toggleLanguage}
+                  >
+                    {language === "en" ? "中" : "EN"}
+                  </button>
+                  <div className="rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-medium text-stone-300">
+                    {copy.prototype}
+                  </div>
                 </div>
               </header>
 
@@ -236,14 +315,16 @@ function AtmosphereSidebar() {
 
               <section>
                 <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
-                  <span>local signals</span>
-                  <span>heuristic</span>
+                  <span>{copy.localSignals}</span>
+                  <span>{copy.heuristic}</span>
                 </div>
                 <div className="space-y-2">
                   {signalSummary.signals.map((signal) => (
                     <div className="space-y-1.5" key={signal.id}>
                       <div className="flex items-center justify-between gap-3 text-[12px]">
-                        <span className="text-stone-400">{signal.label}</span>
+                        <span className="text-stone-400">
+                          {copy.signalLabels[signal.id] ?? signal.label}
+                        </span>
                         <span className="font-medium text-stone-100">
                           {signal.value}
                         </span>
@@ -262,7 +343,7 @@ function AtmosphereSidebar() {
 
               <section>
                 <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
-                  <span>sample titles</span>
+                  <span>{copy.sampleTitles}</span>
                   <span>{sampleItems.length}/5</span>
                 </div>
                 {sampleItems.length > 0 ? (
@@ -282,15 +363,15 @@ function AtmosphereSidebar() {
                   </ol>
                 ) : (
                   <p className="rounded-lg border border-white/8 bg-white/[0.025] px-3 py-3 text-[12px] text-stone-500">
-                    No visible recommendations detected yet.
+                    {copy.emptyRecommendations}
                   </p>
                 )}
               </section>
 
               <div>
                 <div className="flex items-center justify-between text-[11px] text-stone-500">
-                  <span>model</span>
-                  <span>local only</span>
+                  <span>{copy.model}</span>
+                  <span>{copy.localOnly}</span>
                 </div>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                   <motion.div
