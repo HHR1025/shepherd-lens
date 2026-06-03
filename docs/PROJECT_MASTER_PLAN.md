@@ -562,7 +562,30 @@ Complete.
 
 ---
 
-## Stage 8: Session Timeline and Loop Detection
+## Stage 8: Platform Adapter Architecture
+
+Goal:
+Refactor Shepherd Lens so future platforms can be added without rewriting metrics, history, drift, evidence, or UI layers.
+
+Requirements:
+
+* define a platform adapter interface
+* isolate YouTube-specific DOM selectors and navigation handling
+* preserve current YouTube behavior
+* keep metrics platform-independent
+* normalize extracted items into a shared feed model
+* avoid adding new platform support in this stage
+
+Reference:
+
+* PLATFORM_ADAPTER_ARCHITECTURE.md
+
+Status:
+Complete.
+
+---
+
+## Stage 9: Session Timeline and Loop Detection
 
 Goal:
 Show how the recommendation environment changes within and across sessions.
@@ -578,7 +601,7 @@ Requirements:
 
 ---
 
-## Stage 9: User Experiment Mode
+## Stage 10: User Experiment Mode
 
 Goal:
 Support small user-side experiments about recommendation agency.
@@ -593,7 +616,7 @@ Examples:
 
 ---
 
-## Stage 10: Evidence Layer and Source Navigation
+## Stage 11: Evidence Layer and Source Navigation
 
 Goal:
 Help users understand the evidence environment surrounding visible recommended content.
@@ -614,7 +637,7 @@ Reference:
 
 ---
 
-## Stage 11: Backend API
+## Stage 12: Backend API
 
 Goal:
 Create FastAPI analysis service after the local measurement layer is stronger.
@@ -630,7 +653,7 @@ Requirements:
 
 ---
 
-## Stage 12: LLM Interpretation Layer
+## Stage 13: LLM Interpretation Layer
 
 Goal:
 Use an LLM to interpret measured feed structures and attention signals.
@@ -655,7 +678,7 @@ The LLM should explain measured structures, not invent them.
 
 ---
 
-## Stage 13: Algorithmic Persona
+## Stage 14: Algorithmic Persona
 
 Goal:
 Generate atmospheric AI personas only after evidence-backed interpretation exists.
@@ -671,7 +694,7 @@ Persona output must remain probabilistic and non-diagnostic.
 
 ---
 
-## Stage 14: Longitudinal Analysis
+## Stage 15: Longitudinal Analysis
 
 Goal:
 Detect attention environment drift over time.
@@ -685,7 +708,7 @@ Examples:
 
 ---
 
-## Stage 15: Feed Topology
+## Stage 16: Feed Topology
 
 Goal:
 Visualize information structure.
@@ -700,7 +723,7 @@ Tasks:
 
 ---
 
-## Stage 16: Visual Polish
+## Stage 17: Visual Polish
 
 Goal:
 Polish atmosphere and UX after the signal pipeline exists.
@@ -742,7 +765,7 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 7:
+Current priority after Stage 8:
 
 ```text
 session timeline and loop detection
@@ -751,6 +774,6 @@ session timeline and loop detection
 -> evidence-backed reflection over time
 ```
 
-The next task should build on the new layered UI rather than adding another permanent metric section.
+The next task should build on the platform adapter architecture.
 
 The next task should make recommendation changes visible over time.

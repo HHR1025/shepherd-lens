@@ -260,12 +260,13 @@ Suggested order:
 2. topic concentration
 3. topic entropy
 4. progressive disclosure UI
-5. session timeline
-6. repetition loop detection
-7. simple user experiment mode
-8. evidence layer
-9. backend API
-10. LLM interpretation layer
+5. platform adapter architecture
+6. session timeline
+7. repetition loop detection
+8. simple user experiment mode
+9. evidence layer
+10. backend API
+11. LLM interpretation layer
 
 The LLM should explain measured structures.
 
@@ -275,6 +276,7 @@ Correct architecture:
 
 ```text
 feed extraction
+-> platform normalization
 -> local metrics
 -> history
 -> drift / loop detection

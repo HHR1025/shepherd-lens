@@ -1,4 +1,4 @@
-import type { FeedItem } from "./feed-extractor";
+import type { FeedItem } from "./feed-item";
 
 export type AttentionSignal = {
   id: string;

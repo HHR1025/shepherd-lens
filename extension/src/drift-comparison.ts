@@ -1,7 +1,7 @@
 import type { AttentionSignalSummary } from "./attention-signals";
 import { calculateAttentionSignals } from "./attention-signals";
-import type { FeedItem } from "./feed-extractor";
-import { cleanText } from "./feed-extractor";
+import type { FeedItem } from "./feed-item";
+import { cleanText } from "./feed-item";
 import type { HistorySnapshot } from "./history-tracking";
 
 export type DriftDirection = "rising" | "falling" | "steady";

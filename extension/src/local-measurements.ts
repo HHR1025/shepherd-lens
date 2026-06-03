@@ -1,5 +1,5 @@
-import type { FeedItem } from "./feed-extractor";
-import { cleanText } from "./feed-extractor";
+import type { FeedItem } from "./feed-item";
+import { cleanText } from "./feed-item";
 
 export type LocalMeasureLevel = "low" | "moderate" | "high";
 

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { calculateAttentionSignals } from "./attention-signals";
 import { compareFeedDrift, type DriftComparison } from "./drift-comparison";
-import { extractVisibleFeedItems, normalizeKey, type FeedItem } from "./feed-extractor";
+import { normalizeKey, type FeedItem } from "./feed-item";
 import {
   getHistoryStatus,
   readHistory,
@@ -20,6 +20,7 @@ import {
   type SidebarLanguage,
 } from "./localization";
 import { calculateLocalMeasurements, type LocalMeasurementSummary } from "./local-measurements";
+import { getActivePlatformAdapter } from "./platforms";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
@@ -53,11 +54,15 @@ let latestHistoryStatus: HistoryStatus = {
   lastSnapshotAt: null,
 };
 let saveInFlight = false;
+const activePlatformAdapter = getActivePlatformAdapter();
 
-console.info("[Shepherd Lens] content script loaded", window.location.href);
+console.info(
+  "[Shepherd Lens] content script loaded",
+  activePlatformAdapter.getPlatformMetadata(),
+);
 
 function publishFeedItems() {
-  latestFeedItems = extractVisibleFeedItems(document, MAX_VISIBLE_FEED_ITEMS);
+  latestFeedItems = activePlatformAdapter.extractVisibleItems(document, MAX_VISIBLE_FEED_ITEMS);
   Object.assign(window, {
     __SHEPHERD_LENS_FEED__: latestFeedItems,
   });
@@ -371,7 +376,7 @@ function AtmosphereSidebar() {
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.div
-            className="max-h-[calc(100vh-120px)] w-[306px] overflow-hidden rounded-xl border border-white/10 bg-[#111111]/84 p-4 shadow-[0_18px_60px_rgba(0,0,0,0.36)] backdrop-blur-xl"
+            className="max-h-[calc(100vh-120px)] w-[320px] overflow-hidden rounded-xl border border-white/10 bg-[#111111]/84 p-4 shadow-[0_18px_60px_rgba(0,0,0,0.36)] backdrop-blur-xl"
             initial={{ opacity: 0, x: 14, scale: 0.98 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 12, scale: 0.98 }}
@@ -545,27 +550,34 @@ function SummaryDisclosure({
       ].join(" ")}
     >
       <button
-        className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left transition hover:bg-white/[0.035]"
+        className="flex w-full items-start justify-between gap-3 px-3 py-3.5 text-left transition hover:bg-white/[0.035]"
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
-        <div className="min-w-0">
-          <div className={muted ? "text-[11px] text-stone-600" : "text-[11px] text-stone-500"}>
+        <div className="min-w-0 flex-1">
+          <div
+            className={[
+              "leading-4",
+              muted ? "text-[11px] text-stone-600" : "text-[11px] text-stone-500",
+            ].join(" ")}
+          >
             {label}
           </div>
           <div
             className={[
-              "mt-1 line-clamp-2 text-[13px] font-medium leading-4",
+              "mt-1 break-words text-[13px] font-semibold leading-[18px]",
               muted ? "text-stone-300" : "text-stone-100",
             ].join(" ")}
           >
             {value}
           </div>
-          <div className="mt-1 truncate text-[10px] text-stone-600">{detail}</div>
+          <div className="mt-1 min-h-3 truncate text-[10px] leading-3 text-stone-600">
+            {detail}
+          </div>
         </div>
         <motion.span
-          className="shrink-0 text-[11px] text-stone-500"
+          className="mt-5 shrink-0 text-[11px] text-stone-500"
           animate={{ rotate: open ? 90 : 0 }}
           transition={{ duration: 0.18 }}
         >
@@ -606,7 +618,7 @@ function ViewTabs({
       {(["overview", "evidence"] as const).map((view) => (
         <button
           className={[
-            "rounded-md px-3 py-1.5 text-[12px] font-medium transition",
+            "min-w-0 rounded-md px-2 py-1.5 text-[12px] font-medium leading-4 transition",
             activeView === view
               ? "bg-white/10 text-stone-100 shadow-sm"
               : "text-stone-500 hover:bg-white/[0.045] hover:text-stone-300",
@@ -904,7 +916,7 @@ function injectSidebar() {
       right: 16px;
       top: 96px;
       z-index: 2147483647;
-      width: 306px;
+      width: 320px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       background: rgba(17, 17, 17, 0.84);
@@ -946,21 +958,4 @@ function scheduleInjection() {
 
 scheduleInjection();
 
-window.addEventListener("yt-navigate-finish", scheduleInjection);
-window.addEventListener("yt-page-data-updated", scheduleInjection);
-window.addEventListener("popstate", scheduleInjection);
-window.addEventListener("scroll", () => scheduleFeedExtraction(180), { passive: true });
-window.addEventListener("resize", () => scheduleFeedExtraction(180));
-
-const observer = new MutationObserver(() => {
-  if (!document.getElementById(HOST_ID)) {
-    scheduleInjection();
-  }
-
-  scheduleFeedExtraction(220);
-});
-
-observer.observe(document.documentElement, {
-  childList: true,
-  subtree: true,
-});
+activePlatformAdapter.observeFeedChanges(scheduleInjection);
