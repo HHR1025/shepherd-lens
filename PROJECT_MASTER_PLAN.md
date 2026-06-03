@@ -533,6 +533,9 @@ Requirements:
 * title hook density
 * evidence references for each metric
 
+Status:
+Complete.
+
 ---
 
 ## Stage 7: Session Timeline and Loop Detection
@@ -694,11 +697,11 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 5:
+Current priority after Stage 6:
 
 ```text
-local measurement expansion
--> session timeline and loop detection
+session timeline and loop detection
+-> user experiment mode
 -> evidence-backed reflection over time
 ```
 

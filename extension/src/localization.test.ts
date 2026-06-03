@@ -36,5 +36,8 @@ describe("localization", () => {
     expect(copy.localSignals).toBe("注意力信号");
     expect(copy.signalLabels.stimulation).toBe("刺激强度");
     expect(copy.signalLabels.short_form).toBe("短内容");
+    expect(copy.localMeasures).toBe("本地测量");
+    expect(copy.measureLabels.channel_concentration).toBe("频道集中度");
+    expect(copy.measureLabels.visible_feed_entropy).toBe("推荐熵");
   });
 });

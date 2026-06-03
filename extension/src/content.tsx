@@ -19,12 +19,13 @@ import {
   normalizeLanguage,
   type SidebarLanguage,
 } from "./localization";
+import { calculateLocalMeasurements, type LocalMeasurementSummary } from "./local-measurements";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
 const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
 const HISTORY_UPDATE_EVENT = "shepherd-lens-history-update";
-const UI_VERSION = "stage-8-drift-comparison";
+const UI_VERSION = "stage-10-local-measurements";
 const MAX_VISIBLE_FEED_ITEMS = 60;
 
 type FeedUpdateEvent = CustomEvent<FeedItem[]>;
@@ -217,6 +218,7 @@ function AtmosphereSidebar() {
   const { history, status: historyStatus } = useHistoryStatus();
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
+  const localMeasurements = useMemo(() => calculateLocalMeasurements(feedItems), [feedItems]);
   const driftComparison = useMemo(
     () => compareFeedDrift(feedItems, history.snapshots),
     [feedItems, history.snapshots],
@@ -354,6 +356,8 @@ function AtmosphereSidebar() {
                 </div>
               </section>
 
+              <LocalMeasuresPanel summary={localMeasurements} language={language} />
+
               <DriftPanel comparison={driftComparison} language={language} />
 
               <section>
@@ -456,6 +460,49 @@ function DriftPanel({
   );
 }
 
+function LocalMeasuresPanel({
+  summary,
+  language,
+}: {
+  summary: LocalMeasurementSummary;
+  language: SidebarLanguage;
+}) {
+  const copy = getCopy(language);
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between text-[11px] text-stone-500">
+        <span>{copy.localMeasures}</span>
+        <span>{copy.heuristic}</span>
+      </div>
+      <div className="space-y-2">
+        {summary.metrics.map((metric) => (
+          <div className="space-y-1.5" key={metric.id} title={metric.evidence.join("\n")}>
+            <div className="flex items-center justify-between gap-3 text-[12px]">
+              <span className="text-stone-400">
+                {copy.measureLabels[metric.id] ?? metric.label}
+              </span>
+              <span className="font-medium text-stone-100">
+                {metric.value}
+                <span className="ml-1 text-[10px] font-normal text-stone-500">
+                  {copy.levels[metric.level]}
+                </span>
+              </span>
+            </div>
+            <div className="h-1 overflow-hidden rounded-full bg-white/10">
+              <motion.div
+                className="h-full rounded-full bg-stone-400"
+                animate={{ width: `${metric.value}%` }}
+                transition={{ duration: 0.38, ease: "easeOut" }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function formatDriftSummary(comparison: DriftComparison, language: SidebarLanguage) {
   const copy = getCopy(language);
 
@@ -469,15 +516,14 @@ function formatDriftSummary(comparison: DriftComparison, language: SidebarLangua
     return copy.drift.steady;
   }
 
-  return activeChanges
-    .slice(0, 2)
-    .map((change) => {
-      const signalName = copy.drift.signalNames[change.id] ?? change.label.toLowerCase();
-      const direction = copy.drift.directions[change.direction];
+  const parts = activeChanges.slice(0, 2).map((change) => {
+    const signalName = copy.drift.signalNames[change.id] ?? change.label.toLowerCase();
+    const direction = copy.drift.directions[change.direction];
 
-      return language === "zh" ? `${signalName}${direction}` : `${signalName} ${direction}`;
-    })
-    .join(language === "zh" ? "，" : ", ");
+    return language === "zh" ? `${signalName}${direction}` : `${signalName} ${direction}`;
+  });
+
+  return parts.join(language === "zh" ? "，" : ", ");
 }
 
 function formatListOrEmpty(items: string[], emptyCopy: string) {

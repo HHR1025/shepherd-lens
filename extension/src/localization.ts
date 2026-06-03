@@ -17,6 +17,9 @@ export type SidebarCopy = {
   localSignals: string;
   heuristic: string;
   signalLabels: Record<string, string>;
+  localMeasures: string;
+  measureLabels: Record<string, string>;
+  levels: Record<"low" | "moderate" | "high", string>;
   sampleTitles: string;
   emptyRecommendations: string;
   model: string;
@@ -63,6 +66,19 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
       novelty: "Novelty",
       repetition: "Repetition",
       short_form: "Short-form",
+    },
+    localMeasures: "local measures",
+    measureLabels: {
+      channel_concentration: "Channel focus",
+      topic_concentration: "Topic focus",
+      visible_feed_entropy: "Feed entropy",
+      source_diversity: "Source diversity",
+      title_hook_density: "Hook density",
+    },
+    levels: {
+      low: "low",
+      moderate: "moderate",
+      high: "high",
     },
     sampleTitles: "sample titles",
     emptyRecommendations: "No visible recommendations detected yet.",
@@ -116,6 +132,19 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
       novelty: "新鲜度",
       repetition: "重复感",
       short_form: "短内容",
+    },
+    localMeasures: "本地测量",
+    measureLabels: {
+      channel_concentration: "频道集中度",
+      topic_concentration: "主题集中度",
+      visible_feed_entropy: "推荐熵",
+      source_diversity: "来源多样性",
+      title_hook_density: "标题钩子",
+    },
+    levels: {
+      low: "低",
+      moderate: "中",
+      high: "高",
     },
     sampleTitles: "推荐样本",
     emptyRecommendations: "暂未识别到可见推荐。",
