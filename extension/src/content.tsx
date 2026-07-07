@@ -21,6 +21,7 @@ import {
 } from "./localization";
 import { calculateLocalMeasurements, type LocalMeasurementSummary } from "./local-measurements";
 import { getActivePlatformAdapter } from "./platforms";
+import { analyzeSessionTimeline, type SessionTimelineSummary } from "./session-timeline";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
@@ -340,6 +341,10 @@ function AtmosphereSidebar() {
     () => compareFeedDrift(feedItems, history.snapshots),
     [feedItems, history.snapshots],
   );
+  const sessionTimeline = useMemo(
+    () => analyzeSessionTimeline(feedItems, history.snapshots),
+    [feedItems, history.snapshots],
+  );
   const status = feedItems.length > 0 ? copy.watchingPage : copy.scanningPage;
   const attentionSummary = getAttentionClimate(signalSummary.signals, copy);
   const diversitySummary = getFeedDiversity(localMeasurements, copy);
@@ -474,7 +479,11 @@ function AtmosphereSidebar() {
                     label={copy.overview.driftSummary}
                     value={driftSummary}
                   >
-                    <DriftPanel comparison={driftComparison} language={language} />
+                    <DriftPanel
+                      comparison={driftComparison}
+                      language={language}
+                      timeline={sessionTimeline}
+                    />
                   </SummaryDisclosure>
 
                   <SummaryDisclosure
@@ -718,30 +727,47 @@ function LocalMeasuresPanel({
 function DriftPanel({
   comparison,
   language,
+  timeline,
 }: {
   comparison: DriftComparison;
   language: SidebarLanguage;
+  timeline: SessionTimelineSummary;
 }) {
   const copy = getCopy(language);
+  const timelineCopy = getTimelineCopy(language);
   const summary = formatDriftSummary(comparison, language);
   const repeatedChannels = formatListOrEmpty(
-    comparison.repeatedChannels,
+    uniqueValues([...comparison.repeatedChannels, ...timeline.recurringChannels]),
     copy.drift.noneDetected,
   );
-  const repeatedTopics = formatListOrEmpty(comparison.repeatedTopics, copy.drift.noneDetected);
+  const repeatedTopics = formatListOrEmpty(
+    uniqueValues([...comparison.repeatedTopics, ...timeline.recurringTopics]),
+    copy.drift.noneDetected,
+  );
 
   return (
-    <KeyValueList
-      items={[
-        { label: copy.drift.heading, value: summary },
-        {
-          label: copy.drift.comparedWith,
-          value: comparison.baselineAvailable ? copy.drift.previousSnapshot : copy.drift.waiting,
-        },
-        { label: copy.drift.repeatedChannels, value: repeatedChannels },
-        { label: copy.drift.topicLoops, value: repeatedTopics },
-      ]}
-    />
+    <div className="space-y-4">
+      <KeyValueList
+        items={[
+          { label: copy.drift.heading, value: summary },
+          {
+            label: copy.drift.comparedWith,
+            value: comparison.baselineAvailable ? copy.drift.previousSnapshot : copy.drift.waiting,
+          },
+          {
+            label: timelineCopy.sessionWindow,
+            value: formatSnapshotCount(timeline.activeSessionSnapshots, language),
+          },
+          { label: copy.drift.repeatedChannels, value: repeatedChannels },
+          { label: copy.drift.topicLoops, value: repeatedTopics },
+        ]}
+      />
+      <div className="space-y-2">
+        <MetricBar label={timelineCopy.sessionSimilarity} value={timeline.sessionSimilarity} />
+        <MetricBar label={timelineCopy.topicSwitching} value={timeline.topicSwitchingSpeed} />
+        <MetricBar label={timelineCopy.noveltyDecay} value={timeline.noveltyDecay} />
+      </div>
+    </div>
   );
 }
 
@@ -887,6 +913,36 @@ function formatDriftSummary(comparison: DriftComparison, language: SidebarLangua
 
 function formatListOrEmpty(items: string[], emptyCopy: string) {
   return items.length > 0 ? items.join(", ") : emptyCopy;
+}
+
+function uniqueValues(items: string[]) {
+  return [...new Set(items.filter(Boolean))];
+}
+
+function formatSnapshotCount(count: number, language: SidebarLanguage) {
+  if (language === "zh") {
+    return `${count} 次快照`;
+  }
+
+  return `${count} ${count === 1 ? "snapshot" : "snapshots"}`;
+}
+
+function getTimelineCopy(language: SidebarLanguage) {
+  if (language === "zh") {
+    return {
+      noveltyDecay: "新鲜度衰减",
+      sessionSimilarity: "会话相似度",
+      sessionWindow: "会话窗口",
+      topicSwitching: "话题切换",
+    };
+  }
+
+  return {
+    noveltyDecay: "Novelty decay",
+    sessionSimilarity: "Session similarity",
+    sessionWindow: "Session window",
+    topicSwitching: "Topic switching",
+  };
 }
 
 function injectSidebar() {

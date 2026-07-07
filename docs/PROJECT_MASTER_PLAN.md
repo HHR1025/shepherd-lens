@@ -599,6 +599,9 @@ Requirements:
 * recurring channel exposure
 * topic switching speed
 
+Status:
+Complete.
+
 ---
 
 ## Stage 10: User Experiment Mode
@@ -765,15 +768,14 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 8:
+Current priority after Stage 9:
 
 ```text
-session timeline and loop detection
--> user experiment mode
+user experiment mode
 -> evidence layer and source navigation
 -> evidence-backed reflection over time
 ```
 
-The next task should build on the platform adapter architecture.
+The next task should build on the local timeline and loop-detection layer.
 
-The next task should make recommendation changes visible over time.
+The next task should help users run small local experiments about recommendation agency.
