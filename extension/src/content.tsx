@@ -22,11 +22,19 @@ import {
 import { calculateLocalMeasurements, type LocalMeasurementSummary } from "./local-measurements";
 import { getActivePlatformAdapter } from "./platforms";
 import { analyzeSessionTimeline, type SessionTimelineSummary } from "./session-timeline";
+import {
+  completeActiveUserExperiment,
+  readUserExperimentState,
+  startUserExperiment,
+  type ExperimentKind,
+  type UserExperimentState,
+} from "./user-experiment";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
 const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
 const HISTORY_UPDATE_EVENT = "shepherd-lens-history-update";
+const EXPERIMENT_UPDATE_EVENT = "shepherd-lens-experiment-update";
 const UI_VERSION = "stage-11-progressive-disclosure";
 const MAX_VISIBLE_FEED_ITEMS = 60;
 const POSITION_STORAGE_KEY = "shepherdLensSidebarPosition";
@@ -39,6 +47,7 @@ const SIDEBAR_MIN_VISIBLE = 56;
 
 type FeedUpdateEvent = CustomEvent<FeedItem[]>;
 type HistoryUpdateEvent = CustomEvent<HistoryState>;
+type ExperimentUpdateEvent = CustomEvent<UserExperimentState>;
 type SidebarView = "overview" | "evidence";
 type SidebarPosition = {
   left: number;
@@ -53,6 +62,10 @@ let latestHistoryState: HistoryState = {
 let latestHistoryStatus: HistoryStatus = {
   snapshotCount: 0,
   lastSnapshotAt: null,
+};
+let latestExperimentState: UserExperimentState = {
+  activeExperiment: null,
+  experiments: [],
 };
 let saveInFlight = false;
 const activePlatformAdapter = getActivePlatformAdapter();
@@ -120,6 +133,23 @@ function useHistoryStatus() {
   };
 }
 
+function useUserExperimentState() {
+  const [state, setState] = useState<UserExperimentState>(latestExperimentState);
+
+  useEffect(() => {
+    const handleUpdate = (event: Event) => {
+      setState((event as ExperimentUpdateEvent).detail);
+    };
+
+    window.addEventListener(EXPERIMENT_UPDATE_EVENT, handleUpdate);
+    void refreshExperimentState();
+
+    return () => window.removeEventListener(EXPERIMENT_UPDATE_EVENT, handleUpdate);
+  }, []);
+
+  return state;
+}
+
 async function refreshHistoryStatus() {
   const storage = getChromeStorage();
 
@@ -129,6 +159,17 @@ async function refreshHistoryStatus() {
 
   const history = await readHistory(storage);
   publishHistoryState(history);
+}
+
+async function refreshExperimentState() {
+  const storage = getChromeStorage();
+
+  if (!storage) {
+    return;
+  }
+
+  const state = await readUserExperimentState(storage);
+  publishExperimentState(state);
 }
 
 async function persistHistorySnapshot(feedItems: FeedItem[]) {
@@ -157,6 +198,18 @@ function publishHistoryState(history: HistoryState) {
   window.dispatchEvent(
     new CustomEvent<HistoryState>(HISTORY_UPDATE_EVENT, {
       detail: latestHistoryState,
+    }),
+  );
+}
+
+function publishExperimentState(state: UserExperimentState) {
+  latestExperimentState = state;
+  Object.assign(window, {
+    __SHEPHERD_LENS_EXPERIMENTS__: latestExperimentState,
+  });
+  window.dispatchEvent(
+    new CustomEvent<UserExperimentState>(EXPERIMENT_UPDATE_EVENT, {
+      detail: latestExperimentState,
     }),
   );
 }
@@ -334,6 +387,7 @@ function AtmosphereSidebar() {
   const copy = getCopy(language);
   const feedItems = useFeedItems();
   const { history, status: historyStatus } = useHistoryStatus();
+  const experimentState = useUserExperimentState();
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
   const localMeasurements = useMemo(() => calculateLocalMeasurements(feedItems), [feedItems]);
@@ -502,6 +556,19 @@ function AtmosphereSidebar() {
                         { label: copy.snapshots, value: `${historyStatus.snapshotCount}` },
                         { label: copy.lastSaved, value: lastSaved },
                       ]}
+                    />
+                  </SummaryDisclosure>
+
+                  <SummaryDisclosure
+                    detail={getExperimentStatusDetail(experimentState, language)}
+                    label={getExperimentCopy(language).heading}
+                    priority="low"
+                    value={getExperimentStatusValue(experimentState, language)}
+                  >
+                    <ExperimentPanel
+                      feedItems={feedItems}
+                      language={language}
+                      state={experimentState}
                     />
                   </SummaryDisclosure>
                 </section>
@@ -915,6 +982,117 @@ function formatListOrEmpty(items: string[], emptyCopy: string) {
   return items.length > 0 ? items.join(", ") : emptyCopy;
 }
 
+function ExperimentPanel({
+  feedItems,
+  language,
+  state,
+}: {
+  feedItems: FeedItem[];
+  language: SidebarLanguage;
+  state: UserExperimentState;
+}) {
+  const copy = getExperimentCopy(language);
+  const [note, setNote] = useState("");
+  const activeExperiment = state.activeExperiment;
+  const latestExperiment = state.experiments.at(-1);
+
+  const startExperiment = async (kind: ExperimentKind) => {
+    const storage = getChromeStorage();
+
+    if (!storage) {
+      return;
+    }
+
+    const nextState = await startUserExperiment(
+      storage,
+      kind,
+      note,
+      feedItems,
+      window.location.href,
+    );
+    setNote("");
+    publishExperimentState(nextState);
+  };
+
+  const completeExperiment = async () => {
+    const storage = getChromeStorage();
+
+    if (!storage) {
+      return;
+    }
+
+    const nextState = await completeActiveUserExperiment(
+      storage,
+      feedItems,
+      window.location.href,
+    );
+    publishExperimentState(nextState);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[12px] leading-5 text-stone-500">{copy.description}</p>
+      {activeExperiment ? (
+        <div className="space-y-3">
+          <KeyValueList
+            items={[
+              { label: copy.active, value: copy.kinds[activeExperiment.kind] },
+              {
+                label: copy.baseline,
+                value: formatItemCount(activeExperiment.baseline.itemCount, language),
+              },
+            ]}
+          />
+          <button
+            className="w-full rounded-lg border border-white/10 bg-white/8 px-3 py-2 text-[12px] font-medium text-stone-100 transition hover:bg-white/12"
+            type="button"
+            onClick={completeExperiment}
+          >
+            {copy.complete}
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <textarea
+            className="min-h-16 w-full resize-none rounded-lg border border-white/8 bg-black/20 px-3 py-2 text-[12px] leading-4 text-stone-200 outline-none transition placeholder:text-stone-600 focus:border-white/18"
+            maxLength={120}
+            placeholder={copy.notePlaceholder}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+          />
+          <div className="grid grid-cols-2 gap-2">
+            {(["search", "watch", "ignore", "recovery"] as const).map((kind) => (
+              <button
+                className="rounded-lg border border-white/8 bg-white/[0.035] px-2 py-2 text-[11px] font-medium text-stone-300 transition hover:bg-white/10 hover:text-stone-100"
+                key={kind}
+                type="button"
+                onClick={() => void startExperiment(kind)}
+              >
+                {copy.kinds[kind]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {latestExperiment ? (
+        <div className="space-y-2 border-t border-white/8 pt-3">
+          <div className="flex items-center justify-between text-[11px] text-stone-500">
+            <span>{copy.latest}</span>
+            <span>{copy.kinds[latestExperiment.kind]}</span>
+          </div>
+          {formatExperimentDeltas(latestExperiment.deltas, language).map((item) => (
+            <div className="flex items-center justify-between gap-3 text-[12px]" key={item.label}>
+              <span className="text-stone-500">{item.label}</span>
+              <span className="font-medium text-stone-200">{item.value}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function uniqueValues(items: string[]) {
   return [...new Set(items.filter(Boolean))];
 }
@@ -943,6 +1121,88 @@ function getTimelineCopy(language: SidebarLanguage) {
     sessionWindow: "Session window",
     topicSwitching: "Topic switching",
   };
+}
+
+function getExperimentCopy(language: SidebarLanguage) {
+  if (language === "zh") {
+    return {
+      active: "进行中",
+      baseline: "起点样本",
+      complete: "完成实验",
+      description: "记录一个小动作，稍后对比推荐环境是否变化。仅保存在本地。",
+      heading: "实验模式",
+      latest: "最近实验",
+      notePlaceholder: "简短记录这次动作...",
+      ready: "准备记录",
+      saved: "已记录",
+      kinds: {
+        ignore: "忽略",
+        note: "记录",
+        recovery: "恢复",
+        search: "搜索",
+        watch: "观看",
+      },
+    };
+  }
+
+  return {
+    active: "Active",
+    baseline: "Baseline",
+    complete: "Complete experiment",
+    description: "Mark a small action, then compare whether the recommendation environment shifts.",
+    heading: "Experiment mode",
+    latest: "Latest experiment",
+    notePlaceholder: "Short note about this action...",
+    ready: "ready to mark",
+    saved: "saved locally",
+    kinds: {
+      ignore: "Ignore",
+      note: "Note",
+      recovery: "Recovery",
+      search: "Search",
+      watch: "Watch",
+    },
+  };
+}
+
+function getExperimentStatusValue(state: UserExperimentState, language: SidebarLanguage) {
+  const copy = getExperimentCopy(language);
+
+  if (state.activeExperiment) {
+    return copy.kinds[state.activeExperiment.kind];
+  }
+
+  return state.experiments.length > 0 ? `${state.experiments.length} ${copy.saved}` : copy.ready;
+}
+
+function getExperimentStatusDetail(state: UserExperimentState, language: SidebarLanguage) {
+  const copy = getExperimentCopy(language);
+
+  if (state.activeExperiment) {
+    return copy.active;
+  }
+
+  return state.experiments.length > 0 ? copy.latest : copy.ready;
+}
+
+function formatExperimentDeltas(
+  deltas: UserExperimentState["experiments"][number]["deltas"],
+  language: SidebarLanguage,
+) {
+  const copy = getCopy(language);
+
+  return deltas
+    .filter((delta) => delta.delta !== 0)
+    .slice(0, 3)
+    .map((delta) => {
+      const label = copy.signalLabels[delta.id] ?? delta.label;
+      const sign = delta.delta > 0 ? "+" : "";
+
+      return {
+        label,
+        value: `${sign}${delta.delta}`,
+      };
+    });
 }
 
 function injectSidebar() {

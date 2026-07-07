@@ -617,6 +617,9 @@ Examples:
 * recovery from unwanted topic loops
 * simple intervention notes
 
+Status:
+Complete.
+
 ---
 
 ## Stage 11: Evidence Layer and Source Navigation
@@ -768,14 +771,13 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 9:
+Current priority after Stage 10:
 
 ```text
-user experiment mode
--> evidence layer and source navigation
+evidence layer and source navigation
 -> evidence-backed reflection over time
 ```
 
-The next task should build on the local timeline and loop-detection layer.
+The next task should build on the local experiment and timeline layers.
 
-The next task should help users run small local experiments about recommendation agency.
+The next task should help users inspect source visibility and evidence availability.
