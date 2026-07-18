@@ -6,7 +6,7 @@ import {
   findRepeatedChannels,
   findRepeatedTopics,
 } from "./drift-comparison";
-import type { FeedItem } from "./feed-extractor";
+import type { FeedItem } from "./feed-item";
 import type { HistorySnapshot } from "./history-tracking";
 
 function item(overrides: Partial<FeedItem> = {}): FeedItem {

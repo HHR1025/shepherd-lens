@@ -8,7 +8,7 @@ import {
   calculateVisibleFeedEntropy,
   topicTokens,
 } from "./local-measurements";
-import type { FeedItem } from "./feed-extractor";
+import type { FeedItem } from "./feed-item";
 
 function item(overrides: Partial<FeedItem> = {}): FeedItem {
   return {

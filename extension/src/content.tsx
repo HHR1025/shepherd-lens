@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import React, { useMemo, useState, useSyncExternalStore } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { calculateAttentionSignals } from "./attention-signals";
@@ -13,14 +13,31 @@ import {
 import {
   formatItemCount,
   getCopy,
-  LANGUAGE_STORAGE_KEY,
-  nextLanguage,
-  normalizeLanguage,
   type SidebarLanguage,
 } from "./localization";
 import { calculateLocalMeasurements, type LocalMeasurementSummary } from "./local-measurements";
 import { getActivePlatformAdapter } from "./platforms";
 import { analyzeSessionTimeline, type SessionTimelineSummary } from "./session-timeline";
+import {
+  formatDriftSummary,
+  formatExperimentDeltas,
+  formatLastSnapshot,
+  formatListOrEmpty,
+  formatSnapshotCount,
+  getAttentionClimate,
+  getExperimentCopy,
+  getExperimentStatusDetail,
+  getExperimentStatusValue,
+  getFeedDiversity,
+  getTimelineCopy,
+  uniqueValues,
+} from "./sidebar-presenter";
+import {
+  isInteractiveDragTarget,
+  reportRuntimeError,
+  useSidebarLanguage,
+  useSidebarPosition,
+} from "./sidebar-preferences";
 import {
   createEmptyUserExperimentState,
   type ExperimentKind,
@@ -30,30 +47,11 @@ import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
 const UI_VERSION = "stage-11-progressive-disclosure";
-const POSITION_STORAGE_KEY = "shepherdLensSidebarPosition";
-const DEFAULT_SIDEBAR_POSITION = {
-  left: 1580,
-  top: 96,
-};
-const SIDEBAR_WIDTH = 360;
-const SIDEBAR_MIN_VISIBLE = 56;
 
 type SidebarView = "overview" | "evidence";
-type SidebarPosition = {
-  left: number;
-  top: number;
-};
 
 let injectionFrame: number | undefined;
 const activePlatformAdapter = getActivePlatformAdapter();
-
-function getChromeStorage() {
-  if (typeof chrome === "undefined") {
-    return null;
-  }
-
-  return chrome.storage?.local ?? null;
-}
 
 const extensionRuntime = activePlatformAdapter
   ? new ExtensionRuntime({
@@ -76,185 +74,6 @@ function getEmptyRuntimeSnapshot() {
 
 function noRuntimeSubscription() {
   return () => undefined;
-}
-
-function useSidebarLanguage() {
-  const [language, setLanguage] = useState<SidebarLanguage>("en");
-
-  useEffect(() => {
-    const storage = getChromeStorage();
-
-    if (!storage) {
-      return;
-    }
-
-    let active = true;
-
-    storage
-      .get([LANGUAGE_STORAGE_KEY])
-      .then((result) => {
-        if (active) {
-          setLanguage(normalizeLanguage(result[LANGUAGE_STORAGE_KEY]));
-        }
-      })
-      .catch((error) => reportRuntimeError("read language", error));
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const toggleLanguage = () => {
-    setLanguage((currentLanguage) => {
-      const updatedLanguage = nextLanguage(currentLanguage);
-      const storage = getChromeStorage();
-
-      if (storage) {
-        void storage
-          .set({
-            [LANGUAGE_STORAGE_KEY]: updatedLanguage,
-          })
-          .catch((error) => reportRuntimeError("save language", error));
-      }
-
-      return updatedLanguage;
-    });
-  };
-
-  return { language, toggleLanguage };
-}
-
-function useSidebarPosition() {
-  const [position, setPosition] = useState<SidebarPosition>(() =>
-    clampSidebarPosition({
-      left: window.innerWidth - SIDEBAR_WIDTH - 16,
-      top: DEFAULT_SIDEBAR_POSITION.top,
-    }),
-  );
-
-  useEffect(() => {
-    const storage = getChromeStorage();
-
-    if (!storage) {
-      return;
-    }
-
-    let active = true;
-
-    storage
-      .get([POSITION_STORAGE_KEY])
-      .then((result) => {
-        const savedPosition = normalizeSidebarPosition(result[POSITION_STORAGE_KEY]);
-
-        if (active && savedPosition) {
-          setPosition(clampSidebarPosition(savedPosition));
-        }
-      })
-      .catch((error) => reportRuntimeError("read sidebar position", error));
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setPosition((currentPosition) => {
-        const nextPosition = clampSidebarPosition(currentPosition);
-
-        void saveSidebarPosition(nextPosition);
-
-        return nextPosition;
-      });
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const moveBy = (deltaX: number, deltaY: number) => {
-    setPosition((currentPosition) => {
-      const nextPosition = clampSidebarPosition({
-        left: currentPosition.left + deltaX,
-        top: currentPosition.top + deltaY,
-      });
-
-      void saveSidebarPosition(nextPosition);
-
-      return nextPosition;
-    });
-  };
-
-  return { moveBy, position };
-}
-
-async function saveSidebarPosition(position: SidebarPosition) {
-  const storage = getChromeStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  try {
-    await storage.set({
-      [POSITION_STORAGE_KEY]: position,
-    });
-  } catch (error) {
-    reportRuntimeError("save sidebar position", error);
-  }
-}
-
-function reportRuntimeError(operation: string, error: unknown) {
-  console.warn(`[Shepherd Lens] Failed to ${operation}.`, error);
-}
-
-function normalizeSidebarPosition(value: unknown): SidebarPosition | null {
-  if (typeof value !== "object" || value === null) {
-    return null;
-  }
-
-  const position = value as SidebarPosition;
-
-  if (!Number.isFinite(position.left) || !Number.isFinite(position.top)) {
-    return null;
-  }
-
-  return position;
-}
-
-function clampSidebarPosition(position: SidebarPosition): SidebarPosition {
-  const maxLeft = Math.max(SIDEBAR_MIN_VISIBLE, window.innerWidth - SIDEBAR_MIN_VISIBLE);
-  const maxTop = Math.max(16, window.innerHeight - SIDEBAR_MIN_VISIBLE);
-
-  return {
-    left: Math.min(Math.max(-SIDEBAR_WIDTH + SIDEBAR_MIN_VISIBLE, position.left), maxLeft),
-    top: Math.min(Math.max(16, position.top), maxTop),
-  };
-}
-
-function isInteractiveDragTarget(target: EventTarget | null) {
-  return target instanceof Element && Boolean(target.closest("button, a, input, select, textarea"));
-}
-
-function formatLastSnapshot(
-  timestamp: string | null,
-  fallback: { notSavedYet: string; unknown: string },
-) {
-  if (!timestamp) {
-    return fallback.notSavedYet;
-  }
-
-  const date = new Date(timestamp);
-
-  if (Number.isNaN(date.getTime())) {
-    return fallback.unknown;
-  }
-
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function AtmosphereSidebar() {
@@ -800,69 +619,6 @@ function SampleList({
   );
 }
 
-function getAttentionClimate(
-  signals: ReturnType<typeof calculateAttentionSignals>["signals"],
-  copy: ReturnType<typeof getCopy>,
-) {
-  const stimulation = signals.find((signal) => signal.id === "stimulation")?.value ?? 0;
-  const conflict = signals.find((signal) => signal.id === "conflict")?.value ?? 0;
-  const pressure = Math.round((stimulation + conflict) / 2);
-
-  if (pressure >= 67) {
-    return copy.overview.active;
-  }
-
-  if (pressure >= 34) {
-    return copy.levels.moderate;
-  }
-
-  return copy.overview.quiet;
-}
-
-function getFeedDiversity(summary: LocalMeasurementSummary, copy: ReturnType<typeof getCopy>) {
-  const entropy = summary.metrics.find((metric) => metric.id === "visible_feed_entropy")?.value ?? 0;
-  const sourceDiversity =
-    summary.metrics.find((metric) => metric.id === "source_diversity")?.value ?? 0;
-  const diversity = Math.round((entropy + sourceDiversity) / 2);
-
-  if (diversity >= 67) {
-    return copy.levels.high;
-  }
-
-  if (diversity >= 34) {
-    return copy.levels.moderate;
-  }
-
-  return copy.levels.low;
-}
-
-function formatDriftSummary(comparison: DriftComparison, language: SidebarLanguage) {
-  const copy = getCopy(language);
-
-  if (!comparison.baselineAvailable) {
-    return copy.drift.waiting;
-  }
-
-  const activeChanges = comparison.changes.filter((change) => change.direction !== "steady");
-
-  if (activeChanges.length === 0) {
-    return copy.drift.steady;
-  }
-
-  const parts = activeChanges.slice(0, 2).map((change) => {
-    const signalName = copy.drift.signalNames[change.id] ?? change.label.toLowerCase();
-    const direction = copy.drift.directions[change.direction];
-
-    return language === "zh" ? `${signalName}${direction}` : `${signalName} ${direction}`;
-  });
-
-  return parts.join(language === "zh" ? "，" : ", ");
-}
-
-function formatListOrEmpty(items: string[], emptyCopy: string) {
-  return items.length > 0 ? items.join(", ") : emptyCopy;
-}
-
 function ExperimentPanel({
   language,
   state,
@@ -954,118 +710,6 @@ function ExperimentPanel({
       ) : null}
     </div>
   );
-}
-
-function uniqueValues(items: string[]) {
-  return [...new Set(items.filter(Boolean))];
-}
-
-function formatSnapshotCount(count: number, language: SidebarLanguage) {
-  if (language === "zh") {
-    return `${count} 次快照`;
-  }
-
-  return `${count} ${count === 1 ? "snapshot" : "snapshots"}`;
-}
-
-function getTimelineCopy(language: SidebarLanguage) {
-  if (language === "zh") {
-    return {
-      noveltyDecay: "新鲜度衰减",
-      sessionSimilarity: "会话相似度",
-      sessionWindow: "会话窗口",
-      topicSwitching: "话题切换",
-    };
-  }
-
-  return {
-    noveltyDecay: "Novelty decay",
-    sessionSimilarity: "Session similarity",
-    sessionWindow: "Session window",
-    topicSwitching: "Topic switching",
-  };
-}
-
-function getExperimentCopy(language: SidebarLanguage) {
-  if (language === "zh") {
-    return {
-      active: "进行中",
-      baseline: "起点样本",
-      complete: "完成实验",
-      description: "记录一个小动作，稍后对比推荐环境是否变化。仅保存在本地。",
-      heading: "实验模式",
-      latest: "最近实验",
-      notePlaceholder: "简短记录这次动作...",
-      ready: "准备记录",
-      saved: "已记录",
-      kinds: {
-        ignore: "忽略",
-        note: "记录",
-        recovery: "恢复",
-        search: "搜索",
-        watch: "观看",
-      },
-    };
-  }
-
-  return {
-    active: "Active",
-    baseline: "Baseline",
-    complete: "Complete experiment",
-    description: "Mark a small action, then compare whether the recommendation environment shifts.",
-    heading: "Experiment mode",
-    latest: "Latest experiment",
-    notePlaceholder: "Short note about this action...",
-    ready: "ready to mark",
-    saved: "saved locally",
-    kinds: {
-      ignore: "Ignore",
-      note: "Note",
-      recovery: "Recovery",
-      search: "Search",
-      watch: "Watch",
-    },
-  };
-}
-
-function getExperimentStatusValue(state: UserExperimentState, language: SidebarLanguage) {
-  const copy = getExperimentCopy(language);
-
-  if (state.activeExperiment) {
-    return copy.kinds[state.activeExperiment.kind];
-  }
-
-  return state.experiments.length > 0 ? `${state.experiments.length} ${copy.saved}` : copy.ready;
-}
-
-function getExperimentStatusDetail(state: UserExperimentState, language: SidebarLanguage) {
-  const copy = getExperimentCopy(language);
-
-  if (state.activeExperiment) {
-    return copy.active;
-  }
-
-  return state.experiments.length > 0 ? copy.latest : copy.ready;
-}
-
-function formatExperimentDeltas(
-  deltas: UserExperimentState["experiments"][number]["deltas"],
-  language: SidebarLanguage,
-) {
-  const copy = getCopy(language);
-
-  return deltas
-    .filter((delta) => delta.delta !== 0)
-    .slice(0, 3)
-    .map((delta) => {
-      const label = copy.signalLabels[delta.id] ?? delta.label;
-      const sign = delta.delta > 0 ? "+" : "";
-
-      return {
-        label,
-        value: `${sign}${delta.delta}`,
-      };
-    });
 }
 
 function injectSidebar() {

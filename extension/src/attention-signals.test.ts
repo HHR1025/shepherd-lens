@@ -7,7 +7,7 @@ import {
   calculateShortFormPressure,
   calculateStimulationDensity,
 } from "./attention-signals";
-import type { FeedItem } from "./feed-extractor";
+import type { FeedItem } from "./feed-item";
 
 function item(overrides: Partial<FeedItem>): FeedItem {
   return {

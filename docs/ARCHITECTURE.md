@@ -103,6 +103,8 @@ Files:
 
 * `content.tsx`
 * `localization.ts`
+* `sidebar-presenter.ts`
+* `sidebar-preferences.ts`
 * `sidebar.css`
 
 Responsibilities:
@@ -114,6 +116,10 @@ Responsibilities:
 * degrade gracefully when browser APIs fail
 
 Presentation code must not introduce new measurement formulas.
+Pure summary formatting and localized display derivation live in
+`sidebar-presenter.ts`. Browser preference hooks and draggable-position bounds
+live in `sidebar-preferences.ts`, keeping `content.tsx` focused on component
+composition and extension injection.
 
 ## Extension Security
 
@@ -137,10 +143,10 @@ GitHub Actions runs these checks on pushes to `main` and on pull requests.
 
 ## Known Refactoring Boundary
 
-`content.tsx` remains a large presentation module containing several sidebar components
-and formatting helpers. Runtime orchestration has been removed from it, so future UI
-splits can proceed by disclosure feature without moving persistence or observation
-logic at the same time.
+`content.tsx` remains the largest presentation module because it contains the sidebar
+component tree. Runtime orchestration, summary formatting, and browser preferences have
+been removed from it. Future UI splits can therefore proceed one disclosure feature at
+a time without moving persistence, observation, or localization logic simultaneously.
 
 The project still lacks a browser-driven Chrome extension end-to-end suite. Unit tests,
 type checking, linting, and production builds protect deterministic modules, but manual

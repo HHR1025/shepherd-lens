@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
   cleanText,
-  extractVisibleFeedItems,
   isDurationText,
   isUsableTitle,
   normalizeKey,
   type FeedItem,
-} from "./feed-extractor";
+} from "./feed-item";
+import { extractYouTubeVisibleItems as extractVisibleFeedItems } from "./platforms/youtube-adapter";
 
 function markVisible(element: Element) {
   Object.defineProperty(element, "getBoundingClientRect", {
