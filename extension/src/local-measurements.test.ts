@@ -88,6 +88,20 @@ describe("local measurements", () => {
     expect(metric.evidence[0]).toContain("BREAKING");
   });
 
+  it("detects Chinese title hooks without classifying calm titles as hooks", () => {
+    const hooked = calculateTitleHookDensity([
+      item({ title: "震惊揭秘：史上最大秘密终于曝光" }),
+      item({ title: "城市公共交通发展记录" }),
+    ]);
+    const calm = calculateTitleHookDensity([
+      item({ title: "城市公共交通发展记录" }),
+      item({ title: "博物馆年度展览导览" }),
+    ]);
+
+    expect(hooked.value).toBeGreaterThan(calm.value);
+    expect(hooked.evidence[0]).toContain("震惊");
+  });
+
   it("filters topic stop words", () => {
     expect(topicTokens("What to know before your travel guide")).toEqual([
       "know",

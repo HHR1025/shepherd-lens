@@ -1,5 +1,8 @@
 import type { FeedItem } from "./feed-item";
-import type { HistoryState } from "./history-tracking";
+import {
+  HISTORY_STORAGE_KEY,
+  type HistoryState,
+} from "./history-tracking";
 import {
   RUNTIME_PERSISTENCE_MESSAGE,
   type RuntimePersistence,
@@ -11,6 +14,7 @@ import type {
   ExperimentKind,
   UserExperimentState,
 } from "./user-experiment";
+import { USER_EXPERIMENT_STORAGE_KEY } from "./user-experiment";
 
 export function createBrowserRuntimePersistence(): RuntimePersistence | null {
   if (typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
@@ -18,6 +22,26 @@ export function createBrowserRuntimePersistence(): RuntimePersistence | null {
   }
 
   return {
+    subscribe(listener) {
+      const handleStorageChange = (
+        changes: Record<string, chrome.storage.StorageChange>,
+        areaName: string,
+      ) => {
+        if (
+          areaName === "local" &&
+          (HISTORY_STORAGE_KEY in changes ||
+            USER_EXPERIMENT_STORAGE_KEY in changes)
+        ) {
+          listener();
+        }
+      };
+
+      chrome.storage.onChanged.addListener(handleStorageChange);
+
+      return () => {
+        chrome.storage.onChanged.removeListener(handleStorageChange);
+      };
+    },
     readState: () =>
       sendPersistenceMessage<RuntimeStoredState>({
         type: RUNTIME_PERSISTENCE_MESSAGE,

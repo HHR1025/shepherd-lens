@@ -78,8 +78,15 @@ npm run build:extension  # rebuild extension-dist
 npm run lint             # ESLint
 npm run typecheck        # full TypeScript check
 npm test                 # Vitest suite
+npm run test:extension:e2e # headed Playwright Chromium extension smoke test
 npm run check            # lint, typecheck, tests, extension build
 ```
+
+Install the browser runtime once with `npx playwright install chromium`. The extension
+E2E smoke test then opens Playwright's isolated Chromium against YouTube. It
+checks sidebar injection, visible-feed extraction, watch/Shorts SPA navigation, duplicate
+host prevention, multi-tab injection, and live browser-storage synchronization. Run it
+before a release; it remains separate from the fast deterministic CI gate.
 
 ## Privacy
 

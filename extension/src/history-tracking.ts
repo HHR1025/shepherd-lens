@@ -9,6 +9,7 @@ import {
   isString,
 } from "./runtime-schema";
 import type { StorageAreaLike } from "./storage";
+import { assertSupportedStorageVersion } from "./storage-schema";
 
 export type PageType = "home" | "watch" | "search" | "shorts" | "other";
 
@@ -147,6 +148,11 @@ export function getHistoryStatus(history: HistoryState): HistoryStatus {
 export async function readHistory(storage: StorageAreaLike): Promise<HistoryState> {
   const result = await storage.get([HISTORY_STORAGE_KEY]);
   const rawHistory = result[HISTORY_STORAGE_KEY];
+  assertSupportedStorageVersion(
+    rawHistory,
+    HISTORY_STORAGE_KEY,
+    HISTORY_SCHEMA_VERSION,
+  );
 
   if (isHistoryState(rawHistory)) {
     return rawHistory;

@@ -8,6 +8,7 @@ import {
   isString,
 } from "./runtime-schema";
 import type { StorageAreaLike } from "./storage";
+import { assertSupportedStorageVersion } from "./storage-schema";
 
 export type ExperimentKind = "search" | "watch" | "ignore" | "recovery" | "note";
 
@@ -137,6 +138,11 @@ export async function readUserExperimentState(
 ): Promise<UserExperimentState> {
   const result = await storage.get([USER_EXPERIMENT_STORAGE_KEY]);
   const value = result[USER_EXPERIMENT_STORAGE_KEY];
+  assertSupportedStorageVersion(
+    value,
+    USER_EXPERIMENT_STORAGE_KEY,
+    USER_EXPERIMENT_SCHEMA_VERSION,
+  );
 
   if (isUserExperimentState(value)) {
     return value;

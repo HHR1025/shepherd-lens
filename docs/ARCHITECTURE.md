@@ -51,6 +51,8 @@ Responsibilities:
 * remain independent of YouTube DOM selectors and React
 
 Domain calculations should be pure wherever possible and covered by unit tests.
+Keyword-based title signals include explicit English and Chinese phrase sets; they remain
+transparent heuristics and are tested against calm and hook-heavy examples in both languages.
 
 ### Persistence Layer
 
@@ -62,6 +64,7 @@ Files:
 * `browser-runtime-persistence.ts`
 * `background.ts`
 * `runtime-schema.ts`
+* `storage-schema.ts`
 
 Responsibilities:
 
@@ -72,12 +75,15 @@ Responsibilities:
 * serialize history and experiment transactions across extension tabs
 
 Stored data must be validated at runtime because TypeScript types do not protect persisted JSON.
-History and experiment records carry explicit schema versions. Unknown future versions
-fall back safely instead of being interpreted as the current schema.
+History and experiment records carry explicit schema versions. Malformed and supported
+legacy records fall back or migrate safely. Unknown future versions are rejected before
+any write, keeping an older extension instance from downgrading newer stored data.
 
 Read-modify-write operations are sent to the Manifest V3 service worker and executed
 through one serial task queue. This prevents two supported tabs from overwriting each
 other's history or experiment updates while the extension is running.
+Content runtimes subscribe to `chrome.storage.onChanged`, so history and experiment
+updates are reflected in other open supported tabs without waiting for another page action.
 
 ### Runtime Coordination Layer
 
@@ -106,6 +112,7 @@ Files:
 * `sidebar-presenter.ts`
 * `sidebar-preferences.ts`
 * `sidebar.css`
+* `sidebar/`
 
 Responsibilities:
 
@@ -118,8 +125,9 @@ Responsibilities:
 Presentation code must not introduce new measurement formulas.
 Pure summary formatting and localized display derivation live in
 `sidebar-presenter.ts`. Browser preference hooks and draggable-position bounds
-live in `sidebar-preferences.ts`, keeping `content.tsx` focused on component
-composition and extension injection.
+live in `sidebar-preferences.ts`. Overview, Evidence, Experiment, navigation, and
+shared display primitives live under `sidebar/`, keeping `content.tsx` focused on
+the injected shell and runtime subscription.
 
 ## Extension Security
 
@@ -141,13 +149,13 @@ ESLint
 
 GitHub Actions runs these checks on pushes to `main` and on pull requests.
 
-## Known Refactoring Boundary
+Release candidates should also pass:
 
-`content.tsx` remains the largest presentation module because it contains the sidebar
-component tree. Runtime orchestration, summary formatting, and browser preferences have
-been removed from it. Future UI splits can therefore proceed one disclosure feature at
-a time without moving persistence, observation, or localization logic simultaneously.
+```text
+npm run test:extension:e2e
+```
 
-The project still lacks a browser-driven Chrome extension end-to-end suite. Unit tests,
-type checking, linting, and production builds protect deterministic modules, but manual
-verification on supported YouTube page types remains part of release validation.
+This headed Playwright Chromium smoke test covers extension loading, injection, visible-feed
+observation, YouTube SPA routes, duplicate-host prevention, multiple tabs, and live
+storage propagation. External YouTube availability remains an environmental dependency,
+so this suite is intentionally separate from deterministic CI.

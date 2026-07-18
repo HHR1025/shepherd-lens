@@ -50,6 +50,7 @@ export class ExtensionRuntime {
   ) => ReturnType<typeof setTimeout>;
   private extractionTimer: ReturnType<typeof setTimeout> | undefined;
   private observerCleanup: (() => void) | undefined;
+  private persistenceCleanup: (() => void) | undefined;
   private pendingSnapshotItems: FeedItem[] | null = null;
   private saveInFlight = false;
   private started = false;
@@ -60,15 +61,22 @@ export class ExtensionRuntime {
   };
 
   constructor(options: ExtensionRuntimeOptions) {
+    const clearTimeoutOption = options.clearTimeout;
+    const setTimeoutOption = options.setTimeout;
+
     this.adapter = options.adapter;
-    this.clearTimeoutFn = options.clearTimeout ?? clearTimeout;
+    this.clearTimeoutFn = clearTimeoutOption
+      ? (timer) => clearTimeoutOption(timer)
+      : (timer) => globalThis.clearTimeout(timer);
     this.extractionDelayMs = options.extractionDelayMs ?? DEFAULT_EXTRACTION_DELAY_MS;
     this.getUrl = options.getUrl;
     this.maxVisibleItems = options.maxVisibleItems ?? DEFAULT_MAX_VISIBLE_ITEMS;
     this.onError = options.onError ?? (() => undefined);
     this.persistence = options.persistence;
     this.root = options.root;
-    this.setTimeoutFn = options.setTimeout ?? setTimeout;
+    this.setTimeoutFn = setTimeoutOption
+      ? (callback, delay) => setTimeoutOption(callback, delay)
+      : (callback, delay) => globalThis.setTimeout(callback, delay);
   }
 
   readonly getSnapshot = () => this.snapshot;
@@ -91,6 +99,9 @@ export class ExtensionRuntime {
       onPageChange?.();
       this.scheduleExtraction();
     });
+    this.persistenceCleanup = this.persistence?.subscribe(() => {
+      void this.refreshStoredState();
+    });
 
     onPageChange?.();
     this.scheduleExtraction(0);
@@ -107,6 +118,8 @@ export class ExtensionRuntime {
     this.started = false;
     this.observerCleanup?.();
     this.observerCleanup = undefined;
+    this.persistenceCleanup?.();
+    this.persistenceCleanup = undefined;
 
     if (this.extractionTimer !== undefined) {
       this.clearTimeoutFn(this.extractionTimer);
@@ -164,7 +177,7 @@ export class ExtensionRuntime {
 
   private scheduleExtraction(delay = this.extractionDelayMs) {
     if (this.extractionTimer !== undefined) {
-      this.clearTimeoutFn(this.extractionTimer);
+      return;
     }
 
     this.extractionTimer = this.setTimeoutFn(() => {

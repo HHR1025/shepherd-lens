@@ -51,6 +51,7 @@ export type RuntimePersistenceResponse<T> =
     };
 
 export type RuntimePersistence = {
+  subscribe(listener: () => void): () => void;
   readState(): Promise<RuntimeStoredState>;
   saveHistory(feedItems: FeedItem[], url: string): Promise<HistoryState>;
   startExperiment(

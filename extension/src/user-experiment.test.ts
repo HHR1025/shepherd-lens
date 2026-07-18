@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FeedItem } from "./feed-item";
+import { UnsupportedStorageSchemaError } from "./storage-schema";
 import {
   completeActiveUserExperiment,
   completeExperiment,
@@ -167,9 +168,23 @@ describe("user experiment mode", () => {
       experiments: [],
     };
 
-    await expect(readUserExperimentState(storage)).resolves.toEqual(
-      createEmptyUserExperimentState(),
+    await expect(readUserExperimentState(storage)).rejects.toBeInstanceOf(
+      UnsupportedStorageSchemaError,
     );
+    await expect(
+      startUserExperiment(
+        storage,
+        "search",
+        "Must not overwrite future data",
+        [item()],
+        "https://www.youtube.com/",
+      ),
+    ).rejects.toBeInstanceOf(UnsupportedStorageSchemaError);
+    expect(storage.data.shepherdLensUserExperiments).toEqual({
+      version: USER_EXPERIMENT_SCHEMA_VERSION + 1,
+      activeExperiment: null,
+      experiments: [],
+    });
   });
 
   it("rejects malformed nested experiment data from storage", async () => {

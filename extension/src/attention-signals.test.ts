@@ -48,6 +48,21 @@ describe("attention signals", () => {
     expect(calculateConflictSaturation(feed)).toBeGreaterThan(60);
   });
 
+  it("recognizes Chinese stimulation and conflict language", () => {
+    const calm = [item({ title: "城市公共交通发展记录" })];
+    const intense = [
+      item({ title: "震惊揭秘：军事冲突危机背后的真相" }),
+      item({ title: "史上最大争议事件曝光" }),
+    ];
+
+    expect(calculateStimulationDensity(intense)).toBeGreaterThan(
+      calculateStimulationDensity(calm),
+    );
+    expect(calculateConflictSaturation(intense)).toBeGreaterThan(
+      calculateConflictSaturation(calm),
+    );
+  });
+
   it("does not treat keyword substrings as conflict evidence", () => {
     const feed = [item({ title: "A forward-looking city plan" })];
 

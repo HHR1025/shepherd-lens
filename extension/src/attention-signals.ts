@@ -27,6 +27,18 @@ const stimulationWords = [
   "shocking",
   "unbelievable",
   "you won't believe",
+  "曝光",
+  "疯狂",
+  "揭秘",
+  "惊人",
+  "绝了",
+  "秘密",
+  "史上",
+  "万万没想到",
+  "真相",
+  "震惊",
+  "最大",
+  "最强",
 ];
 
 const conflictWords = [
@@ -44,6 +56,18 @@ const conflictWords = [
   "versus",
   "vs",
   "war",
+  "崩溃",
+  "丑闻",
+  "对抗",
+  "翻车",
+  "军事",
+  "紧张",
+  "开战",
+  "危机",
+  "灾难",
+  "战争",
+  "争议",
+  "冲突",
 ];
 
 const stopWords = new Set([
@@ -59,6 +83,12 @@ const stopWords = new Set([
   "with",
   "you",
   "your",
+  "一个",
+  "这个",
+  "那个",
+  "我们",
+  "你们",
+  "他们",
 ]);
 
 function clampScore(value: number) {

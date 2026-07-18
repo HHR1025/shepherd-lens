@@ -13,6 +13,7 @@ import {
   type StorageAreaLike,
 } from "./history-tracking";
 import type { FeedItem } from "./feed-item";
+import { UnsupportedStorageSchemaError } from "./storage-schema";
 
 function item(overrides: Partial<FeedItem> = {}): FeedItem {
   return {
@@ -159,7 +160,20 @@ describe("history tracking", () => {
       snapshots: [],
     };
 
-    await expect(readHistory(storage)).resolves.toEqual(createEmptyHistoryState());
+    await expect(readHistory(storage)).rejects.toBeInstanceOf(
+      UnsupportedStorageSchemaError,
+    );
+    await expect(
+      saveHistorySnapshot(
+        storage,
+        [item({ title: "Must not overwrite future data" })],
+        "https://www.youtube.com/",
+      ),
+    ).rejects.toBeInstanceOf(UnsupportedStorageSchemaError);
+    expect(storage.data.shepherdLensHistory).toEqual({
+      version: HISTORY_SCHEMA_VERSION + 1,
+      snapshots: [],
+    });
   });
 
   it("rejects malformed nested snapshot data from storage", async () => {

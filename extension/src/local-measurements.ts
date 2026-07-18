@@ -31,6 +31,12 @@ const stopWords = new Set([
   "when",
   "with",
   "your",
+  "一个",
+  "这个",
+  "那个",
+  "我们",
+  "你们",
+  "他们",
 ]);
 
 const hookWords = [
@@ -45,6 +51,18 @@ const hookWords = [
   "shocking",
   "unbelievable",
   "you won't believe",
+  "曝光",
+  "疯狂",
+  "揭秘",
+  "惊人",
+  "绝了",
+  "秘密",
+  "史上",
+  "万万没想到",
+  "真相",
+  "震惊",
+  "最大",
+  "最强",
 ];
 
 export function calculateLocalMeasurements(items: FeedItem[]): LocalMeasurementSummary {
