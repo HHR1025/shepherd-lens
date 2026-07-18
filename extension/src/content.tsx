@@ -1,14 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { calculateAttentionSignals } from "./attention-signals";
+import { createBrowserRuntimePersistence } from "./browser-runtime-persistence";
 import { compareFeedDrift, type DriftComparison } from "./drift-comparison";
+import { ExtensionRuntime } from "./extension-runtime";
 import { normalizeKey, type FeedItem } from "./feed-item";
 import {
+  createEmptyHistoryState,
   getHistoryStatus,
-  readHistory,
-  saveHistorySnapshot,
-  type HistoryState,
 } from "./history-tracking";
 import {
   formatItemCount,
@@ -22,20 +22,14 @@ import { calculateLocalMeasurements, type LocalMeasurementSummary } from "./loca
 import { getActivePlatformAdapter } from "./platforms";
 import { analyzeSessionTimeline, type SessionTimelineSummary } from "./session-timeline";
 import {
-  completeActiveUserExperiment,
-  readUserExperimentState,
-  startUserExperiment,
+  createEmptyUserExperimentState,
   type ExperimentKind,
   type UserExperimentState,
 } from "./user-experiment";
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
-const FEED_UPDATE_EVENT = "shepherd-lens-feed-update";
-const HISTORY_UPDATE_EVENT = "shepherd-lens-history-update";
-const EXPERIMENT_UPDATE_EVENT = "shepherd-lens-experiment-update";
 const UI_VERSION = "stage-11-progressive-disclosure";
-const MAX_VISIBLE_FEED_ITEMS = 60;
 const POSITION_STORAGE_KEY = "shepherdLensSidebarPosition";
 const DEFAULT_SIDEBAR_POSITION = {
   left: 1580,
@@ -44,190 +38,14 @@ const DEFAULT_SIDEBAR_POSITION = {
 const SIDEBAR_WIDTH = 360;
 const SIDEBAR_MIN_VISIBLE = 56;
 
-type FeedUpdateEvent = CustomEvent<FeedItem[]>;
-type HistoryUpdateEvent = CustomEvent<HistoryState>;
-type ExperimentUpdateEvent = CustomEvent<UserExperimentState>;
 type SidebarView = "overview" | "evidence";
 type SidebarPosition = {
   left: number;
   top: number;
 };
 
-let extractionTimer: number | undefined;
 let injectionFrame: number | undefined;
-let latestFeedItems: FeedItem[] = [];
-let latestHistoryState: HistoryState = {
-  snapshots: [],
-};
-let latestExperimentState: UserExperimentState = {
-  activeExperiment: null,
-  experiments: [],
-};
-let saveInFlight = false;
-let pendingSnapshotItems: FeedItem[] | null = null;
 const activePlatformAdapter = getActivePlatformAdapter();
-
-if (activePlatformAdapter) {
-  console.info(
-    "[Shepherd Lens] content script loaded",
-    activePlatformAdapter.getPlatformMetadata(),
-  );
-}
-
-function publishFeedItems() {
-  latestFeedItems =
-    activePlatformAdapter?.extractVisibleItems(document, MAX_VISIBLE_FEED_ITEMS) ?? [];
-  window.dispatchEvent(
-    new CustomEvent<FeedItem[]>(FEED_UPDATE_EVENT, {
-      detail: latestFeedItems,
-    }),
-  );
-  void persistHistorySnapshot(latestFeedItems);
-}
-
-function scheduleFeedExtraction(delay = 120) {
-  if (extractionTimer) {
-    window.clearTimeout(extractionTimer);
-  }
-
-  extractionTimer = window.setTimeout(() => {
-    extractionTimer = undefined;
-    publishFeedItems();
-  }, delay);
-}
-
-function useFeedItems() {
-  const [items, setItems] = useState<FeedItem[]>(latestFeedItems);
-
-  useEffect(() => {
-    const handleUpdate = (event: Event) => {
-      setItems((event as FeedUpdateEvent).detail);
-    };
-
-    window.addEventListener(FEED_UPDATE_EVENT, handleUpdate);
-    scheduleFeedExtraction(0);
-
-    return () => window.removeEventListener(FEED_UPDATE_EVENT, handleUpdate);
-  }, []);
-
-  return items;
-}
-
-function useHistoryStatus() {
-  const [history, setHistory] = useState<HistoryState>(latestHistoryState);
-
-  useEffect(() => {
-    const handleUpdate = (event: Event) => {
-      setHistory((event as HistoryUpdateEvent).detail);
-    };
-
-    window.addEventListener(HISTORY_UPDATE_EVENT, handleUpdate);
-    void refreshHistoryStatus();
-
-    return () => window.removeEventListener(HISTORY_UPDATE_EVENT, handleUpdate);
-  }, []);
-
-  return {
-    history,
-    status: getHistoryStatus(history),
-  };
-}
-
-function useUserExperimentState() {
-  const [state, setState] = useState<UserExperimentState>(latestExperimentState);
-
-  useEffect(() => {
-    const handleUpdate = (event: Event) => {
-      setState((event as ExperimentUpdateEvent).detail);
-    };
-
-    window.addEventListener(EXPERIMENT_UPDATE_EVENT, handleUpdate);
-    void refreshExperimentState();
-
-    return () => window.removeEventListener(EXPERIMENT_UPDATE_EVENT, handleUpdate);
-  }, []);
-
-  return state;
-}
-
-async function refreshHistoryStatus() {
-  const storage = getChromeStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  try {
-    const history = await readHistory(storage);
-    publishHistoryState(history);
-  } catch (error) {
-    reportRuntimeError("read history", error);
-  }
-}
-
-async function refreshExperimentState() {
-  const storage = getChromeStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  try {
-    const state = await readUserExperimentState(storage);
-    publishExperimentState(state);
-  } catch (error) {
-    reportRuntimeError("read experiments", error);
-  }
-}
-
-async function persistHistorySnapshot(feedItems: FeedItem[]) {
-  const storage = getChromeStorage();
-
-  if (!storage) {
-    return;
-  }
-
-  if (saveInFlight) {
-    pendingSnapshotItems = feedItems;
-    return;
-  }
-
-  saveInFlight = true;
-
-  try {
-    const result = await saveHistorySnapshot(storage, feedItems, window.location.href);
-    publishHistoryState(result.history);
-  } catch (error) {
-    reportRuntimeError("save history", error);
-  } finally {
-    saveInFlight = false;
-
-    const pendingItems = pendingSnapshotItems;
-    pendingSnapshotItems = null;
-
-    if (pendingItems) {
-      void persistHistorySnapshot(pendingItems);
-    }
-  }
-}
-
-function publishHistoryState(history: HistoryState) {
-  latestHistoryState = history;
-  window.dispatchEvent(
-    new CustomEvent<HistoryState>(HISTORY_UPDATE_EVENT, {
-      detail: latestHistoryState,
-    }),
-  );
-}
-
-function publishExperimentState(state: UserExperimentState) {
-  latestExperimentState = state;
-  window.dispatchEvent(
-    new CustomEvent<UserExperimentState>(EXPERIMENT_UPDATE_EVENT, {
-      detail: latestExperimentState,
-    }),
-  );
-}
 
 function getChromeStorage() {
   if (typeof chrome === "undefined") {
@@ -235,6 +53,29 @@ function getChromeStorage() {
   }
 
   return chrome.storage?.local ?? null;
+}
+
+const extensionRuntime = activePlatformAdapter
+  ? new ExtensionRuntime({
+      adapter: activePlatformAdapter,
+      getUrl: () => window.location.href,
+      onError: reportRuntimeError,
+      persistence: createBrowserRuntimePersistence(),
+      root: document,
+    })
+  : null;
+const EMPTY_RUNTIME_SNAPSHOT = {
+  experiments: createEmptyUserExperimentState(),
+  feedItems: [],
+  history: createEmptyHistoryState(),
+} satisfies ReturnType<ExtensionRuntime["getSnapshot"]>;
+
+function getEmptyRuntimeSnapshot() {
+  return EMPTY_RUNTIME_SNAPSHOT;
+}
+
+function noRuntimeSubscription() {
+  return () => undefined;
 }
 
 function useSidebarLanguage() {
@@ -422,9 +263,13 @@ function AtmosphereSidebar() {
   const { moveBy, position } = useSidebarPosition();
   const { language, toggleLanguage } = useSidebarLanguage();
   const copy = getCopy(language);
-  const feedItems = useFeedItems();
-  const { history, status: historyStatus } = useHistoryStatus();
-  const experimentState = useUserExperimentState();
+  const runtimeSnapshot = useSyncExternalStore(
+    extensionRuntime?.subscribe ?? noRuntimeSubscription,
+    extensionRuntime?.getSnapshot ?? getEmptyRuntimeSnapshot,
+    extensionRuntime?.getSnapshot ?? getEmptyRuntimeSnapshot,
+  );
+  const { experiments: experimentState, feedItems, history } = runtimeSnapshot;
+  const historyStatus = getHistoryStatus(history);
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
   const localMeasurements = useMemo(() => calculateLocalMeasurements(feedItems), [feedItems]);
@@ -603,7 +448,6 @@ function AtmosphereSidebar() {
                     value={getExperimentStatusValue(experimentState, language)}
                   >
                     <ExperimentPanel
-                      feedItems={feedItems}
                       language={language}
                       state={experimentState}
                     />
@@ -1020,11 +864,9 @@ function formatListOrEmpty(items: string[], emptyCopy: string) {
 }
 
 function ExperimentPanel({
-  feedItems,
   language,
   state,
 }: {
-  feedItems: FeedItem[];
   language: SidebarLanguage;
   state: UserExperimentState;
 }) {
@@ -1034,44 +876,20 @@ function ExperimentPanel({
   const latestExperiment = state.experiments.at(-1);
 
   const startExperiment = async (kind: ExperimentKind) => {
-    const storage = getChromeStorage();
-
-    if (!storage) {
+    if (!extensionRuntime) {
       return;
     }
 
-    try {
-      const nextState = await startUserExperiment(
-        storage,
-        kind,
-        note,
-        feedItems,
-        window.location.href,
-      );
-      setNote("");
-      publishExperimentState(nextState);
-    } catch (error) {
-      reportRuntimeError("start experiment", error);
-    }
+    await extensionRuntime.startExperiment(kind, note);
+    setNote("");
   };
 
   const completeExperiment = async () => {
-    const storage = getChromeStorage();
-
-    if (!storage) {
+    if (!extensionRuntime) {
       return;
     }
 
-    try {
-      const nextState = await completeActiveUserExperiment(
-        storage,
-        feedItems,
-        window.location.href,
-      );
-      publishExperimentState(nextState);
-    } catch (error) {
-      reportRuntimeError("complete experiment", error);
-    }
+    await extensionRuntime.completeExperiment();
   };
 
   return (
@@ -1308,11 +1126,12 @@ function scheduleInjection() {
       injectSidebar();
     });
   }
-
-  scheduleFeedExtraction();
 }
 
-if (activePlatformAdapter) {
-  scheduleInjection();
-  activePlatformAdapter.observeFeedChanges(scheduleInjection);
+if (activePlatformAdapter && extensionRuntime) {
+  console.info(
+    "[Shepherd Lens] content script loaded",
+    activePlatformAdapter.getPlatformMetadata(),
+  );
+  extensionRuntime.start(scheduleInjection);
 }

@@ -23,6 +23,7 @@ export type HistorySnapshot = {
 };
 
 export type HistoryState = {
+  version: typeof HISTORY_SCHEMA_VERSION;
   snapshots: HistorySnapshot[];
 };
 
@@ -34,8 +35,16 @@ export type HistoryStatus = {
 export type { StorageAreaLike } from "./storage";
 
 export const HISTORY_STORAGE_KEY = "shepherdLensHistory";
+export const HISTORY_SCHEMA_VERSION = 1 as const;
 export const MAX_HISTORY_SNAPSHOTS = 100;
 export const MIN_SNAPSHOT_INTERVAL_MS = 60_000;
+
+export function createEmptyHistoryState(): HistoryState {
+  return {
+    version: HISTORY_SCHEMA_VERSION,
+    snapshots: [],
+  };
+}
 
 export function detectPageType(urlValue: string): PageType {
   try {
@@ -139,11 +148,18 @@ export async function readHistory(storage: StorageAreaLike): Promise<HistoryStat
   const result = await storage.get([HISTORY_STORAGE_KEY]);
   const rawHistory = result[HISTORY_STORAGE_KEY];
 
-  if (!isHistoryState(rawHistory)) {
-    return { snapshots: [] };
+  if (isHistoryState(rawHistory)) {
+    return rawHistory;
   }
 
-  return rawHistory;
+  if (isLegacyHistoryState(rawHistory)) {
+    return {
+      version: HISTORY_SCHEMA_VERSION,
+      snapshots: rawHistory.snapshots,
+    };
+  }
+
+  return createEmptyHistoryState();
 }
 
 export async function saveHistorySnapshot(
@@ -164,8 +180,9 @@ export async function saveHistorySnapshot(
   }
 
   const nextHistory = {
+    version: HISTORY_SCHEMA_VERSION,
     snapshots: trimSnapshots([...history.snapshots, nextSnapshot as HistorySnapshot]),
-  };
+  } satisfies HistoryState;
 
   await storage.set({
     [HISTORY_STORAGE_KEY]: nextHistory,
@@ -179,7 +196,23 @@ export async function saveHistorySnapshot(
 }
 
 function isHistoryState(value: unknown): value is HistoryState {
-  return isRecord(value) && Array.isArray(value.snapshots) && value.snapshots.every(isHistorySnapshot);
+  return (
+    isRecord(value) &&
+    value.version === HISTORY_SCHEMA_VERSION &&
+    Array.isArray(value.snapshots) &&
+    value.snapshots.every(isHistorySnapshot)
+  );
+}
+
+function isLegacyHistoryState(
+  value: unknown,
+): value is Omit<HistoryState, "version"> {
+  return (
+    isRecord(value) &&
+    value.version === undefined &&
+    Array.isArray(value.snapshots) &&
+    value.snapshots.every(isHistorySnapshot)
+  );
 }
 
 function isHistorySnapshot(value: unknown): value is HistorySnapshot {

@@ -27,7 +27,7 @@ Current metrics are experimental local heuristics. They should be interpreted as
 app/                    optional Next.js web shell
 docs/                   product, research, UI, and architecture notes
 extension/public/       Manifest V3 static files
-extension/src/          extension runtime, adapters, analysis, UI, and tests
+extension/src/          runtime store, service worker, adapters, analysis, UI, and tests
 extension-dist/         generated unpacked extension
 ```
 
@@ -83,7 +83,10 @@ npm run check            # lint, typecheck, tests, extension build
 
 ## Privacy
 
-Recommendation snapshots and user experiments remain in `chrome.storage.local`. No backend, paid model, or external analysis API is required by the current implementation.
+Recommendation snapshots and user experiments remain in `chrome.storage.local`. Their
+versioned records are validated on read, and read-modify-write operations are serialized
+by the extension service worker across supported tabs. No backend, paid model, or external
+analysis API is required by the current implementation.
 
 ## Project Direction
 

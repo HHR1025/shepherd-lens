@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:extension": "vite build --config vite.extension.config.ts",
+    "build:extension": "vite build --config vite.extension.config.ts && vite build --config vite.background.config.ts",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

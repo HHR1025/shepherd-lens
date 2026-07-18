@@ -3,10 +3,12 @@ import type { FeedItem } from "./feed-item";
 import {
   completeActiveUserExperiment,
   completeExperiment,
+  createEmptyUserExperimentState,
   createExperiment,
   readUserExperimentState,
   startUserExperiment,
   trimCompletedExperiments,
+  USER_EXPERIMENT_SCHEMA_VERSION,
   type StorageAreaLike,
   type UserExperimentState,
 } from "./user-experiment";
@@ -112,6 +114,7 @@ describe("user experiment mode", () => {
 
     let state = await readUserExperimentState(storage);
 
+    expect(state.version).toBe(USER_EXPERIMENT_SCHEMA_VERSION);
     expect(state.activeExperiment?.kind).toBe("ignore");
 
     state = await completeActiveUserExperiment(
@@ -130,10 +133,43 @@ describe("user experiment mode", () => {
     const storage = memoryStorage();
     storage.data.shepherdLensUserExperiments = { experiments: "invalid" };
 
+    await expect(readUserExperimentState(storage)).resolves.toEqual(
+      createEmptyUserExperimentState(),
+    );
+  });
+
+  it("migrates valid legacy experiment state", async () => {
+    const storage = memoryStorage();
+    const experiment = createExperiment(
+      "note",
+      "legacy note",
+      [item()],
+      "https://www.youtube.com/",
+      new Date("2026-07-07T00:00:00.000Z"),
+    );
+    storage.data.shepherdLensUserExperiments = {
+      activeExperiment: experiment,
+      experiments: [],
+    };
+
     await expect(readUserExperimentState(storage)).resolves.toEqual({
-      activeExperiment: null,
+      version: USER_EXPERIMENT_SCHEMA_VERSION,
+      activeExperiment: experiment,
       experiments: [],
     });
+  });
+
+  it("rejects unsupported future experiment versions", async () => {
+    const storage = memoryStorage();
+    storage.data.shepherdLensUserExperiments = {
+      version: USER_EXPERIMENT_SCHEMA_VERSION + 1,
+      activeExperiment: null,
+      experiments: [],
+    };
+
+    await expect(readUserExperimentState(storage)).resolves.toEqual(
+      createEmptyUserExperimentState(),
+    );
   });
 
   it("rejects malformed nested experiment data from storage", async () => {
@@ -143,9 +179,8 @@ describe("user experiment mode", () => {
       experiments: [{ kind: "search", baseline: "invalid" }],
     };
 
-    await expect(readUserExperimentState(storage)).resolves.toEqual({
-      activeExperiment: null,
-      experiments: [],
-    });
+    await expect(readUserExperimentState(storage)).resolves.toEqual(
+      createEmptyUserExperimentState(),
+    );
   });
 });

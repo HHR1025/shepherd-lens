@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   createFeedKey,
+  createEmptyHistoryState,
   createHistorySnapshot,
   detectPageType,
+  HISTORY_SCHEMA_VERSION,
   readHistory,
   saveHistorySnapshot,
   shouldSaveSnapshot,
@@ -129,7 +131,35 @@ describe("history tracking", () => {
     const history = await readHistory(storage);
 
     expect(result.saved).toBe(true);
+    expect(history.version).toBe(HISTORY_SCHEMA_VERSION);
     expect(history.snapshots).toHaveLength(1);
+  });
+
+  it("migrates valid legacy history without discarding snapshots", async () => {
+    const storage = memoryStorage();
+    const snapshot = createHistorySnapshot(
+      [item({ title: "Legacy item" })],
+      "https://www.youtube.com/",
+      new Date("2026-06-03T00:00:00.000Z"),
+    );
+    storage.data.shepherdLensHistory = {
+      snapshots: [snapshot],
+    };
+
+    await expect(readHistory(storage)).resolves.toEqual({
+      version: HISTORY_SCHEMA_VERSION,
+      snapshots: [snapshot],
+    });
+  });
+
+  it("rejects unsupported future history versions", async () => {
+    const storage = memoryStorage();
+    storage.data.shepherdLensHistory = {
+      version: HISTORY_SCHEMA_VERSION + 1,
+      snapshots: [],
+    };
+
+    await expect(readHistory(storage)).resolves.toEqual(createEmptyHistoryState());
   });
 
   it("rejects malformed nested snapshot data from storage", async () => {
@@ -138,6 +168,6 @@ describe("history tracking", () => {
       snapshots: [{ timestamp: "not-a-date", feedItems: "invalid" }],
     };
 
-    await expect(readHistory(storage)).resolves.toEqual({ snapshots: [] });
+    await expect(readHistory(storage)).resolves.toEqual(createEmptyHistoryState());
   });
 });

@@ -10,6 +10,7 @@ This document describes the implemented architecture. Future product ideas remai
 YouTube DOM
 -> PlatformAdapter
 -> FeedItem[]
+-> ExtensionRuntime store
 -> attention and structure measurements
 -> bounded local history
 -> drift, session, and experiment comparisons
@@ -56,16 +57,45 @@ Domain calculations should be pure wherever possible and covered by unit tests.
 Files:
 
 * `history-tracking.ts`
-* storage operations in `user-experiment.ts`
+* `user-experiment.ts`
+* `runtime-persistence.ts`
+* `browser-runtime-persistence.ts`
+* `background.ts`
 * `runtime-schema.ts`
 
 Responsibilities:
 
 * read and validate untrusted browser-local data
+* migrate supported legacy local records
 * cap retained history and experiments
 * expose storage-independent interfaces for tests
+* serialize history and experiment transactions across extension tabs
 
 Stored data must be validated at runtime because TypeScript types do not protect persisted JSON.
+History and experiment records carry explicit schema versions. Unknown future versions
+fall back safely instead of being interpreted as the current schema.
+
+Read-modify-write operations are sent to the Manifest V3 service worker and executed
+through one serial task queue. This prevents two supported tabs from overwriting each
+other's history or experiment updates while the extension is running.
+
+### Runtime Coordination Layer
+
+Files:
+
+* `extension-runtime.ts`
+
+Responsibilities:
+
+* own the platform observer lifecycle
+* debounce visible-feed extraction
+* publish stable feed, history, and experiment snapshots
+* queue same-tab history updates
+* route persistence commands through the background service worker
+
+The runtime has an idempotent `start()` method and an explicit `stop()` cleanup path.
+React subscribes through `useSyncExternalStore`; internal state propagation does not
+depend on page-level custom events.
 
 ### Presentation Layer
 
@@ -77,16 +107,17 @@ Files:
 
 Responsibilities:
 
-* coordinate extension lifecycle
+* inject the sidebar host
 * render progressive disclosure UI
 * localize user-facing copy
+* persist independent language and sidebar-position preferences
 * degrade gracefully when browser APIs fail
 
 Presentation code must not introduce new measurement formulas.
 
 ## Extension Security
 
-The extension uses declarative content scripts and requests only the `storage` permission. The content script runs only on declared YouTube match patterns. The background service worker exists for extension lifecycle diagnostics and future message-based capabilities.
+The extension uses declarative content scripts and requests only the `storage` permission. The content script runs only on declared YouTube match patterns. The background service worker serializes validated internal persistence requests and handles extension lifecycle diagnostics.
 
 No remote code is loaded by the extension.
 
@@ -106,4 +137,11 @@ GitHub Actions runs these checks on pushes to `main` and on pull requests.
 
 ## Known Refactoring Boundary
 
-`content.tsx` still contains both runtime orchestration and multiple presentation components. It should be split by feature when the next UI change requires touching those areas. A standalone file-size refactor is not urgent enough to justify broad UI regression risk.
+`content.tsx` remains a large presentation module containing several sidebar components
+and formatting helpers. Runtime orchestration has been removed from it, so future UI
+splits can proceed by disclosure feature without moving persistence or observation
+logic at the same time.
+
+The project still lacks a browser-driven Chrome extension end-to-end suite. Unit tests,
+type checking, linting, and production builds protect deterministic modules, but manual
+verification on supported YouTube page types remains part of release validation.

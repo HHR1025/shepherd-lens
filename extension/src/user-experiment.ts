@@ -38,6 +38,7 @@ export type UserExperiment = {
 };
 
 export type UserExperimentState = {
+  version: typeof USER_EXPERIMENT_SCHEMA_VERSION;
   activeExperiment: UserExperiment | null;
   experiments: UserExperiment[];
 };
@@ -45,7 +46,16 @@ export type UserExperimentState = {
 export type { StorageAreaLike } from "./storage";
 
 export const USER_EXPERIMENT_STORAGE_KEY = "shepherdLensUserExperiments";
+export const USER_EXPERIMENT_SCHEMA_VERSION = 1 as const;
 export const MAX_COMPLETED_EXPERIMENTS = 20;
+
+export function createEmptyUserExperimentState(): UserExperimentState {
+  return {
+    version: USER_EXPERIMENT_SCHEMA_VERSION,
+    activeExperiment: null,
+    experiments: [],
+  };
+}
 
 export function createExperiment(
   kind: ExperimentKind,
@@ -128,14 +138,19 @@ export async function readUserExperimentState(
   const result = await storage.get([USER_EXPERIMENT_STORAGE_KEY]);
   const value = result[USER_EXPERIMENT_STORAGE_KEY];
 
-  if (!isUserExperimentState(value)) {
+  if (isUserExperimentState(value)) {
+    return value;
+  }
+
+  if (isLegacyUserExperimentState(value)) {
     return {
-      activeExperiment: null,
-      experiments: [],
+      version: USER_EXPERIMENT_SCHEMA_VERSION,
+      activeExperiment: value.activeExperiment,
+      experiments: value.experiments,
     };
   }
 
-  return value;
+  return createEmptyUserExperimentState();
 }
 
 export async function startUserExperiment(
@@ -149,6 +164,7 @@ export async function startUserExperiment(
   const state = await readUserExperimentState(storage);
   const nextState: UserExperimentState = {
     ...state,
+    version: USER_EXPERIMENT_SCHEMA_VERSION,
     activeExperiment: createExperiment(kind, note, feedItems, url, now),
   };
 
@@ -171,6 +187,7 @@ export async function completeActiveUserExperiment(
 
   const completedExperiment = completeExperiment(state.activeExperiment, feedItems, url, now);
   const nextState: UserExperimentState = {
+    version: USER_EXPERIMENT_SCHEMA_VERSION,
     activeExperiment: null,
     experiments: trimCompletedExperiments([...state.experiments, completedExperiment]),
   };
@@ -192,6 +209,19 @@ async function writeUserExperimentState(
 function isUserExperimentState(value: unknown): value is UserExperimentState {
   return (
     isRecord(value) &&
+    value.version === USER_EXPERIMENT_SCHEMA_VERSION &&
+    (value.activeExperiment === null || isUserExperiment(value.activeExperiment)) &&
+    Array.isArray(value.experiments) &&
+    value.experiments.every(isUserExperiment)
+  );
+}
+
+function isLegacyUserExperimentState(
+  value: unknown,
+): value is Omit<UserExperimentState, "version"> {
+  return (
+    isRecord(value) &&
+    value.version === undefined &&
     (value.activeExperiment === null || isUserExperiment(value.activeExperiment)) &&
     Array.isArray(value.experiments) &&
     value.experiments.every(isUserExperiment)
@@ -238,7 +268,7 @@ function isExperimentSignalDelta(value: unknown): value is ExperimentSignalDelta
   );
 }
 
-function isExperimentKind(value: unknown): value is ExperimentKind {
+export function isExperimentKind(value: unknown): value is ExperimentKind {
   return (
     value === "search" ||
     value === "watch" ||
