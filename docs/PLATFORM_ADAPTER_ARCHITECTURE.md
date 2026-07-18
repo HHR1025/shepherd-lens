@@ -2,11 +2,9 @@
 
 ## Status
 
-Planned
+Implemented for the current YouTube runtime.
 
-High Priority
-
-Infrastructure Milestone
+Future adapters remain planned.
 
 ---
 
@@ -137,7 +135,7 @@ interface PlatformAdapter {
 
   extractVisibleItems(): FeedItem[];
 
-  observeFeedChanges(callback: () => void): void;
+  observeFeedChanges(callback: () => void): () => void;
 
   getPlatformMetadata(): PlatformMetadata;
 }

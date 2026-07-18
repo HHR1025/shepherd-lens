@@ -1,6 +1,7 @@
 import type { FeedItem } from "./feed-item";
 import { cleanText, normalizeKey } from "./feed-item";
 import type { HistorySnapshot } from "./history-tracking";
+import { tokenizeText } from "./text-analysis";
 
 export type SessionTimelineSummary = {
   snapshotCount: number;
@@ -172,11 +173,7 @@ function createFeedKey(items: FeedItem[]) {
 }
 
 function topicTokens(value: string) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length >= 4 && !topicStopWords.has(token));
+  return tokenizeText(value, { minLength: 4, stopWords: topicStopWords });
 }
 
 function countValues(values: string[]) {

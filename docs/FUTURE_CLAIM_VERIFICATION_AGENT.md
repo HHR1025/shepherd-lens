@@ -26,6 +26,8 @@ The system should not determine objective truth.
 
 The system should evaluate evidence availability and evidence support.
 
+This agent should not depend on paid LLM APIs. If models are used, open-source or user-configured adapters should be preferred.
+
 ---
 
 ## Motivation
@@ -148,8 +150,10 @@ Claim: Hungary's inflation rate reached 10%.
 
 Potential technologies:
 
-* LLM extraction
-* structured prompting
+* rule-based extraction for simple numeric or named-entity claims
+* open-source information extraction models
+* local small language models where available
+* structured prompting only as an optional adapter
 * information extraction models
 
 ---
@@ -199,6 +203,8 @@ Research sources:
 * Semantic Scholar
 * OpenAlex
 * Crossref
+* arXiv
+* PubMed where relevant
 
 Independent reporting:
 
@@ -294,19 +300,28 @@ Data processing:
 * spaCy
 * NLTK
 * sentence-transformers
+* KeyBERT
+* open-source rerankers
 
 Retrieval:
 
-* Tavily
-* SerpAPI
 * Common Crawl
 * OpenAlex API
+* Crossref API
+* Semantic Scholar API
+* arXiv API
+* World Bank API
+* OECD API
+* IMF Data API
+* Eurostat API
+* Wikidata API
+* optional low-cost search APIs
 
 LLMs:
 
-* GPT
-* Claude
 * local models
+* open-source hosted models where terms and cost are acceptable
+* GPT / Claude only as optional user-configured adapters
 
 Vector storage:
 
@@ -365,6 +380,8 @@ Mitigation:
 * avoid truth labels
 * expose reasoning steps
 * keep users in control
+* separate retrieved evidence from model-generated explanation
+* keep model use optional
 
 ---
 
@@ -381,7 +398,8 @@ Future priority:
 
 1. Source Navigation
 2. Evidence Confidence Index
-3. Claim Verification Agent
+3. Open-source retrieval and reranking
+4. Claim Verification Agent
 
 The Claim Verification Agent should not begin until the Recommendation Environment and Evidence Environment layers are mature and stable.
 

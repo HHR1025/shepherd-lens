@@ -23,7 +23,11 @@ export const youtubeAdapter: PlatformAdapter = {
     try {
       const url = new URL(urlValue);
 
-      return url.hostname.endsWith("youtube.com") || url.hostname === "youtu.be";
+      return (
+        url.hostname === "youtube.com" ||
+        url.hostname.endsWith(".youtube.com") ||
+        url.hostname === "youtu.be"
+      );
     } catch {
       return false;
     }

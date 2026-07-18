@@ -9,7 +9,6 @@ import {
   readHistory,
   saveHistorySnapshot,
   type HistoryState,
-  type HistoryStatus,
 } from "./history-tracking";
 import {
   formatItemCount,
@@ -55,31 +54,29 @@ type SidebarPosition = {
 };
 
 let extractionTimer: number | undefined;
+let injectionFrame: number | undefined;
 let latestFeedItems: FeedItem[] = [];
 let latestHistoryState: HistoryState = {
   snapshots: [],
-};
-let latestHistoryStatus: HistoryStatus = {
-  snapshotCount: 0,
-  lastSnapshotAt: null,
 };
 let latestExperimentState: UserExperimentState = {
   activeExperiment: null,
   experiments: [],
 };
 let saveInFlight = false;
+let pendingSnapshotItems: FeedItem[] | null = null;
 const activePlatformAdapter = getActivePlatformAdapter();
 
-console.info(
-  "[Shepherd Lens] content script loaded",
-  activePlatformAdapter.getPlatformMetadata(),
-);
+if (activePlatformAdapter) {
+  console.info(
+    "[Shepherd Lens] content script loaded",
+    activePlatformAdapter.getPlatformMetadata(),
+  );
+}
 
 function publishFeedItems() {
-  latestFeedItems = activePlatformAdapter.extractVisibleItems(document, MAX_VISIBLE_FEED_ITEMS);
-  Object.assign(window, {
-    __SHEPHERD_LENS_FEED__: latestFeedItems,
-  });
+  latestFeedItems =
+    activePlatformAdapter?.extractVisibleItems(document, MAX_VISIBLE_FEED_ITEMS) ?? [];
   window.dispatchEvent(
     new CustomEvent<FeedItem[]>(FEED_UPDATE_EVENT, {
       detail: latestFeedItems,
@@ -93,7 +90,10 @@ function scheduleFeedExtraction(delay = 120) {
     window.clearTimeout(extractionTimer);
   }
 
-  extractionTimer = window.setTimeout(publishFeedItems, delay);
+  extractionTimer = window.setTimeout(() => {
+    extractionTimer = undefined;
+    publishFeedItems();
+  }, delay);
 }
 
 function useFeedItems() {
@@ -157,8 +157,12 @@ async function refreshHistoryStatus() {
     return;
   }
 
-  const history = await readHistory(storage);
-  publishHistoryState(history);
+  try {
+    const history = await readHistory(storage);
+    publishHistoryState(history);
+  } catch (error) {
+    reportRuntimeError("read history", error);
+  }
 }
 
 async function refreshExperimentState() {
@@ -168,14 +172,23 @@ async function refreshExperimentState() {
     return;
   }
 
-  const state = await readUserExperimentState(storage);
-  publishExperimentState(state);
+  try {
+    const state = await readUserExperimentState(storage);
+    publishExperimentState(state);
+  } catch (error) {
+    reportRuntimeError("read experiments", error);
+  }
 }
 
 async function persistHistorySnapshot(feedItems: FeedItem[]) {
   const storage = getChromeStorage();
 
-  if (!storage || saveInFlight) {
+  if (!storage) {
+    return;
+  }
+
+  if (saveInFlight) {
+    pendingSnapshotItems = feedItems;
     return;
   }
 
@@ -184,17 +197,22 @@ async function persistHistorySnapshot(feedItems: FeedItem[]) {
   try {
     const result = await saveHistorySnapshot(storage, feedItems, window.location.href);
     publishHistoryState(result.history);
+  } catch (error) {
+    reportRuntimeError("save history", error);
   } finally {
     saveInFlight = false;
+
+    const pendingItems = pendingSnapshotItems;
+    pendingSnapshotItems = null;
+
+    if (pendingItems) {
+      void persistHistorySnapshot(pendingItems);
+    }
   }
 }
 
 function publishHistoryState(history: HistoryState) {
   latestHistoryState = history;
-  latestHistoryStatus = getHistoryStatus(history);
-  Object.assign(window, {
-    __SHEPHERD_LENS_HISTORY__: latestHistoryStatus,
-  });
   window.dispatchEvent(
     new CustomEvent<HistoryState>(HISTORY_UPDATE_EVENT, {
       detail: latestHistoryState,
@@ -204,9 +222,6 @@ function publishHistoryState(history: HistoryState) {
 
 function publishExperimentState(state: UserExperimentState) {
   latestExperimentState = state;
-  Object.assign(window, {
-    __SHEPHERD_LENS_EXPERIMENTS__: latestExperimentState,
-  });
   window.dispatchEvent(
     new CustomEvent<UserExperimentState>(EXPERIMENT_UPDATE_EVENT, {
       detail: latestExperimentState,
@@ -234,11 +249,14 @@ function useSidebarLanguage() {
 
     let active = true;
 
-    storage.get([LANGUAGE_STORAGE_KEY]).then((result) => {
-      if (active) {
-        setLanguage(normalizeLanguage(result[LANGUAGE_STORAGE_KEY]));
-      }
-    });
+    storage
+      .get([LANGUAGE_STORAGE_KEY])
+      .then((result) => {
+        if (active) {
+          setLanguage(normalizeLanguage(result[LANGUAGE_STORAGE_KEY]));
+        }
+      })
+      .catch((error) => reportRuntimeError("read language", error));
 
     return () => {
       active = false;
@@ -250,9 +268,13 @@ function useSidebarLanguage() {
       const updatedLanguage = nextLanguage(currentLanguage);
       const storage = getChromeStorage();
 
-      void storage?.set({
-        [LANGUAGE_STORAGE_KEY]: updatedLanguage,
-      });
+      if (storage) {
+        void storage
+          .set({
+            [LANGUAGE_STORAGE_KEY]: updatedLanguage,
+          })
+          .catch((error) => reportRuntimeError("save language", error));
+      }
 
       return updatedLanguage;
     });
@@ -278,13 +300,16 @@ function useSidebarPosition() {
 
     let active = true;
 
-    storage.get([POSITION_STORAGE_KEY]).then((result) => {
-      const savedPosition = normalizeSidebarPosition(result[POSITION_STORAGE_KEY]);
+    storage
+      .get([POSITION_STORAGE_KEY])
+      .then((result) => {
+        const savedPosition = normalizeSidebarPosition(result[POSITION_STORAGE_KEY]);
 
-      if (active && savedPosition) {
-        setPosition(clampSidebarPosition(savedPosition));
-      }
-    });
+        if (active && savedPosition) {
+          setPosition(clampSidebarPosition(savedPosition));
+        }
+      })
+      .catch((error) => reportRuntimeError("read sidebar position", error));
 
     return () => {
       active = false;
@@ -326,9 +351,21 @@ function useSidebarPosition() {
 async function saveSidebarPosition(position: SidebarPosition) {
   const storage = getChromeStorage();
 
-  await storage?.set({
-    [POSITION_STORAGE_KEY]: position,
-  });
+  if (!storage) {
+    return;
+  }
+
+  try {
+    await storage.set({
+      [POSITION_STORAGE_KEY]: position,
+    });
+  } catch (error) {
+    reportRuntimeError("save sidebar position", error);
+  }
+}
+
+function reportRuntimeError(operation: string, error: unknown) {
+  console.warn(`[Shepherd Lens] Failed to ${operation}.`, error);
 }
 
 function normalizeSidebarPosition(value: unknown): SidebarPosition | null {
@@ -1003,15 +1040,19 @@ function ExperimentPanel({
       return;
     }
 
-    const nextState = await startUserExperiment(
-      storage,
-      kind,
-      note,
-      feedItems,
-      window.location.href,
-    );
-    setNote("");
-    publishExperimentState(nextState);
+    try {
+      const nextState = await startUserExperiment(
+        storage,
+        kind,
+        note,
+        feedItems,
+        window.location.href,
+      );
+      setNote("");
+      publishExperimentState(nextState);
+    } catch (error) {
+      reportRuntimeError("start experiment", error);
+    }
   };
 
   const completeExperiment = async () => {
@@ -1021,12 +1062,16 @@ function ExperimentPanel({
       return;
     }
 
-    const nextState = await completeActiveUserExperiment(
-      storage,
-      feedItems,
-      window.location.href,
-    );
-    publishExperimentState(nextState);
+    try {
+      const nextState = await completeActiveUserExperiment(
+        storage,
+        feedItems,
+        window.location.href,
+      );
+      publishExperimentState(nextState);
+    } catch (error) {
+      reportRuntimeError("complete experiment", error);
+    }
   };
 
   return (
@@ -1254,24 +1299,20 @@ function injectSidebar() {
 
   createRoot(mount).render(<AtmosphereSidebar />);
 
-  try {
-    const response = chrome.runtime?.sendMessage?.({ type: "SHEPHERD_LENS_READY" });
-
-    if (response && typeof response.catch === "function") {
-      response.catch(() => {
-        // The UI can render even if the background worker is sleeping or unavailable.
-      });
-    }
-  } catch {
-    // Message passing is diagnostic only; keep the injected UI alive.
-  }
 }
 
 function scheduleInjection() {
-  window.requestAnimationFrame(injectSidebar);
+  if (injectionFrame === undefined) {
+    injectionFrame = window.requestAnimationFrame(() => {
+      injectionFrame = undefined;
+      injectSidebar();
+    });
+  }
+
   scheduleFeedExtraction();
 }
 
-scheduleInjection();
-
-activePlatformAdapter.observeFeedChanges(scheduleInjection);
+if (activePlatformAdapter) {
+  scheduleInjection();
+  activePlatformAdapter.observeFeedChanges(scheduleInjection);
+}

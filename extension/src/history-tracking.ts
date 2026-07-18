@@ -2,8 +2,15 @@ import type { AttentionSignalSummary } from "./attention-signals";
 import { calculateAttentionSignals } from "./attention-signals";
 import type { FeedItem } from "./feed-item";
 import { normalizeKey } from "./feed-item";
+import {
+  isAttentionSignalSummary,
+  isFeedItem,
+  isRecord,
+  isString,
+} from "./runtime-schema";
+import type { StorageAreaLike } from "./storage";
 
-export type PageType = "home" | "watch" | "shorts" | "other";
+export type PageType = "home" | "watch" | "search" | "shorts" | "other";
 
 export type HistorySnapshot = {
   id: string;
@@ -24,10 +31,7 @@ export type HistoryStatus = {
   lastSnapshotAt: string | null;
 };
 
-export type StorageAreaLike = {
-  get(keys: string[]): Promise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): Promise<void>;
-};
+export type { StorageAreaLike } from "./storage";
 
 export const HISTORY_STORAGE_KEY = "shepherdLensHistory";
 export const MAX_HISTORY_SNAPSHOTS = 100;
@@ -43,6 +47,10 @@ export function detectPageType(urlValue: string): PageType {
 
     if (url.pathname === "/watch") {
       return "watch";
+    }
+
+    if (url.pathname === "/results") {
+      return "search";
     }
 
     if (url.pathname.startsWith("/shorts/")) {
@@ -171,10 +179,31 @@ export async function saveHistorySnapshot(
 }
 
 function isHistoryState(value: unknown): value is HistoryState {
+  return isRecord(value) && Array.isArray(value.snapshots) && value.snapshots.every(isHistorySnapshot);
+}
+
+function isHistorySnapshot(value: unknown): value is HistorySnapshot {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    Array.isArray((value as HistoryState).snapshots)
+    isRecord(value) &&
+    isString(value.id) &&
+    isString(value.timestamp) &&
+    Number.isFinite(Date.parse(value.timestamp)) &&
+    isString(value.url) &&
+    isPageType(value.pageType) &&
+    Array.isArray(value.feedItems) &&
+    value.feedItems.every(isFeedItem) &&
+    isAttentionSignalSummary(value.signals) &&
+    isString(value.feedKey)
+  );
+}
+
+function isPageType(value: unknown): value is PageType {
+  return (
+    value === "home" ||
+    value === "watch" ||
+    value === "search" ||
+    value === "shorts" ||
+    value === "other"
   );
 }
 

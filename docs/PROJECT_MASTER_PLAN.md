@@ -32,20 +32,20 @@ Current real capability:
 * React-based floating sidebar
 * TailwindCSS styling
 * Framer Motion animation
-* collapsible cinematic UI
-* placeholder atmosphere text
-
-Current sidebar values are demo placeholders:
-
-* Current Feed Atmosphere: emotionally accelerated
-* Algorithmic Pressure: moderate
-* Attention Climate: unstable
+* collapsible and draggable progressive-disclosure UI
+* visible YouTube feed extraction
+* deterministic local attention and structure signals
+* bounded local history and drift comparison
+* session timeline and repetition-loop indicators
+* user-marked before/after experiments
+* English and Chinese interface copy
+* platform adapter boundary
 
 Important:
 
-The current prototype does not yet perform real AI analysis, emotion detection, feed extraction, embeddings, topology analysis, or longitudinal tracking.
+The current prototype does not perform paid or generative AI analysis, emotion detection, embeddings, topology analysis, causal inference, or platform-internal recommendation analysis.
 
-Its purpose is to prove that the extension can enter YouTube, render reliably, and establish the first visible interface surface.
+Its current measurements are local heuristics derived from visible page content and bounded browser-local history.
 
 ---
 
@@ -55,17 +55,18 @@ The next meaningful stage is not more glow effects.
 
 The next meaningful stage is attention environment inference.
 
-This means building a pipeline where feed content produces visible signals before any LLM interpretation happens.
+This means building a pipeline where feed content produces visible signals before any model interpretation happens.
 
-Recommended pipeline:
+Recommended low-cost pipeline:
 
 ```text
 visible feed
 -> feed extraction
 -> statistical attention signals
--> optional embeddings
+-> optional open-source embeddings
 -> pattern extraction
--> LLM interpretation
+-> retrieval / source discovery where relevant
+-> optional local or open-source interpretation
 -> atmospheric interface
 ```
 
@@ -231,10 +232,11 @@ Backend responsibilities:
 
 * feed analysis orchestration
 * signal calculation
-* LLM interpretation
-* embeddings
+* open-source embedding jobs where needed
+* public-source retrieval
 * longitudinal analysis
 * topology calculations
+* optional local model orchestration
 
 ## Database
 
@@ -247,22 +249,39 @@ Later:
 * PostgreSQL
 * pgvector
 
-## AI Layer
+## Model and Retrieval Layer
 
-Initial AI layer:
+Primary strategy:
 
-* OpenAI API
+* local heuristics first
+* open-source models where useful
+* public retrieval APIs before generative interpretation
+* paid LLM APIs only as optional future adapters
 
 Possible tasks:
 
-* atmospheric interpretation
-* cognitive weather generation
-* algorithmic persona generation
+* topic grouping
+* source discovery assistance
+* evidence summarization from retrieved links
+* optional atmospheric interpretation
+* optional cognitive weather generation
 * trend summarization
 
 Important:
 
-The LLM should interpret extracted structures and signals. It should not be the only source of truth.
+The project should not depend on paid LLM access to be useful.
+
+Any model should interpret extracted structures and retrieved sources. It should not be the only source of truth.
+
+Recommended low-cost tools and APIs:
+
+* sentence-transformers for local embeddings
+* MiniLM or E5-style embedding models for topic similarity
+* spaCy or KeyBERT for lightweight keyword extraction
+* OpenAlex, Crossref, Semantic Scholar, and arXiv for research retrieval
+* World Bank, OECD, IMF, Eurostat, WHO, and UN Data for public statistics
+* Wikipedia and Wikidata for reference navigation, not final authority
+* browser-accessible search APIs only where cost and terms are acceptable
 
 ---
 
@@ -474,7 +493,7 @@ Initial metrics:
 * topic concentration
 * attention fragmentation
 
-This stage should exist before full LLM interpretation.
+This stage should exist before model-based interpretation.
 
 Status:
 Complete.
@@ -522,7 +541,7 @@ Complete.
 ## Stage 6: Local Measurement Expansion
 
 Goal:
-Strengthen the local measurement layer before any backend or LLM interpretation.
+Strengthen the local measurement layer before any backend or model-based interpretation.
 
 Requirements:
 
@@ -622,7 +641,39 @@ Complete.
 
 ---
 
-## Stage 11: Evidence Layer and Source Navigation
+## Stage 11: Observation Quality and Validity Indicators
+
+Goal:
+Make the system honest about how strong or weak the current observation is before adding evidence retrieval.
+
+Requirements:
+
+* visible sample size quality
+* page context detection
+* history depth and recency
+* extraction freshness
+* selector health / extraction health
+* confidence boundary labels such as snapshot, session trend, or weak signal
+* local-only wording that avoids platform-wide claims
+
+This stage should make clear when Shepherd Lens is seeing only:
+
+```text
+a small visible sample
+```
+
+rather than:
+
+```text
+the user's complete recommendation environment
+```
+
+Status:
+Next.
+
+---
+
+## Stage 12: Evidence Layer and Source Navigation
 
 Goal:
 Help users understand the evidence environment surrounding visible recommended content.
@@ -636,6 +687,8 @@ Requirements:
 * independent reporting detection where possible
 * citation visibility detection
 * clear boundary that evidence confidence is not a truth score
+* open-source and public API retrieval before paid model interpretation
+* source links before generated summaries
 
 Reference:
 
@@ -643,7 +696,7 @@ Reference:
 
 ---
 
-## Stage 12: Backend API
+## Stage 13: Backend API
 
 Goal:
 Create FastAPI analysis service after the local measurement layer is stronger.
@@ -656,15 +709,17 @@ Requirements:
 * receive local history context where appropriate
 * return structured atmosphere analysis
 * preserve uncertainty and evidence references
+* support retrieval adapters for public/open APIs
+* keep paid model calls optional
 
 ---
 
-## Stage 13: LLM Interpretation Layer
+## Stage 14: Open-Source Interpretation Layer
 
 Goal:
-Use an LLM to interpret measured feed structures and attention signals.
+Use local or open-source models to interpret measured feed structures and attention signals where useful.
 
-The LLM should receive:
+The model should receive:
 
 * extracted feed items
 * calculated metrics
@@ -673,18 +728,20 @@ The LLM should receive:
 * topic clusters where available
 * clear safety and uncertainty instructions
 
-The LLM should return:
+The model may return:
 
 * atmosphere labels
 * cognitive weather summary
 * evidence-based explanation
 * uncertainty notes
 
-The LLM should explain measured structures, not invent them.
+The model should explain measured structures, not invent them.
+
+Paid LLM APIs may be added later as adapters, but they are not required for the core product.
 
 ---
 
-## Stage 14: Algorithmic Persona
+## Stage 15: Algorithmic Persona
 
 Goal:
 Generate atmospheric AI personas only after evidence-backed interpretation exists.
@@ -700,7 +757,7 @@ Persona output must remain probabilistic and non-diagnostic.
 
 ---
 
-## Stage 15: Longitudinal Analysis
+## Stage 16: Longitudinal Analysis
 
 Goal:
 Detect attention environment drift over time.
@@ -714,14 +771,14 @@ Examples:
 
 ---
 
-## Stage 16: Feed Topology
+## Stage 17: Feed Topology
 
 Goal:
 Visualize information structure.
 
 Tasks:
 
-* embeddings
+* open-source embeddings
 * clustering
 * graph visualization
 * repetition density analysis
@@ -729,7 +786,7 @@ Tasks:
 
 ---
 
-## Stage 17: Visual Polish
+## Stage 18: Visual Polish
 
 Goal:
 Polish atmosphere and UX after the signal pipeline exists.
@@ -774,10 +831,13 @@ Bad:
 Current priority after Stage 10:
 
 ```text
-evidence layer and source navigation
+observation quality and validity indicators
+-> evidence layer and source navigation
 -> evidence-backed reflection over time
 ```
 
 The next task should build on the local experiment and timeline layers.
 
-The next task should help users inspect source visibility and evidence availability.
+The next task should make the product more honest about sampling limits, page context, history depth, and extraction reliability.
+
+After that, the project should help users inspect source visibility and evidence availability through open retrieval sources and public APIs.

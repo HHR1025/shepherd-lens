@@ -27,6 +27,8 @@ Always distinguish:
 * local history
 * inferred pattern
 * unverified interpretation
+* observation quality
+* retrieval coverage
 
 ---
 
@@ -126,6 +128,39 @@ Implication for Shepherd Lens:
 * prefer source links over generated conclusions
 * show uncertainty when source discovery is incomplete
 
+### Observation Validity and Reproducibility
+
+Research direction:
+Algorithmic audits are difficult to reproduce because recommendation outputs change with time, login state, region, language, device, interaction history, and page context.
+
+Useful lesson:
+The product should not only show metrics. It should also show how much trust the user should place in the observation.
+
+Implication for Shepherd Lens:
+
+* label whether the current view is a snapshot, session trend, or weak signal
+* expose visible sample size
+* expose page context such as home, watch, search, or shorts
+* show history depth and recency
+* show extraction freshness
+* warn when the current sample is too narrow for strong interpretation
+
+### Open-Source and Retrieval-First AI
+
+Research direction:
+Many useful information-environment tasks do not require a paid generative model. Topic grouping, source discovery, citation extraction, and evidence navigation can often begin with rules, local embeddings, and public APIs.
+
+Useful lesson:
+Shepherd Lens should be useful without paid LLM access.
+
+Implication for Shepherd Lens:
+
+* use local heuristics as the baseline
+* use open-source embeddings for topic similarity when needed
+* use public source APIs for evidence discovery
+* keep paid LLMs as optional adapters rather than core infrastructure
+* prefer retrieved links and structured evidence over generated claims
+
 ---
 
 ## 3. Metrics Worth Building
@@ -193,6 +228,19 @@ Need source discovery:
 * citation visibility
 * verification accessibility
 
+### Observation Quality Metrics
+
+Need before stronger interpretation:
+
+* visible sample size
+* page context
+* history depth
+* snapshot recency
+* extraction freshness
+* extraction coverage
+* selector health
+* confidence boundary label
+
 ---
 
 ## 4. Product Principles
@@ -217,6 +265,14 @@ Every claim should be linked to observable evidence:
 Default mode should work without backend or cloud analysis.
 
 Sensitive history should remain local unless the user explicitly exports or opts in.
+
+### Avoid Paid-Model Dependency
+
+The project should not require OpenAI, Claude, or any paid LLM provider to deliver its core value.
+
+Open models and public retrieval APIs should be the default path.
+
+Paid models can be supported later as optional adapters for users who explicitly configure them.
 
 ### Help Users Reflect
 
@@ -252,7 +308,7 @@ This claim is true.
 
 ## 5. Recommended Roadmap Adjustment
 
-Before OpenAI integration, build a stronger local measurement layer.
+Before any paid model integration, build a stronger local measurement and retrieval layer.
 
 Suggested order:
 
@@ -264,13 +320,15 @@ Suggested order:
 6. session timeline
 7. repetition loop detection
 8. simple user experiment mode
-9. evidence layer
-10. backend API
-11. LLM interpretation layer
+9. observation quality and validity indicators
+10. evidence layer
+11. backend API
+12. open-source interpretation layer
+13. optional paid LLM adapters
 
-The LLM should explain measured structures.
+Models should explain measured structures.
 
-The LLM should not invent the structures.
+Models should not invent the structures.
 
 Correct architecture:
 
@@ -280,7 +338,17 @@ feed extraction
 -> local metrics
 -> history
 -> drift / loop detection
+-> observation quality
 -> evidence layer
--> optional LLM interpretation
+-> optional open-source interpretation
 -> reflective interface
 ```
+
+Recommended low-cost sources and tools:
+
+* sentence-transformers for local embeddings
+* spaCy, KeyBERT, or lightweight keyword extraction
+* OpenAlex, Crossref, Semantic Scholar, and arXiv for research sources
+* World Bank, OECD, IMF, Eurostat, WHO, and UN Data for public statistics
+* Wikidata and Wikipedia for reference navigation
+* browser-accessible search APIs only if pricing, terms, and privacy are acceptable

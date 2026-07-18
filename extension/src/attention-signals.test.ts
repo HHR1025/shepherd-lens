@@ -48,6 +48,12 @@ describe("attention signals", () => {
     expect(calculateConflictSaturation(feed)).toBeGreaterThan(60);
   });
 
+  it("does not treat keyword substrings as conflict evidence", () => {
+    const feed = [item({ title: "A forward-looking city plan" })];
+
+    expect(calculateConflictSaturation(feed)).toBe(0);
+  });
+
   it("scores novelty higher when titles and channels vary", () => {
     const repetitive = [
       item({ title: "China city city city update", channel: "One" }),

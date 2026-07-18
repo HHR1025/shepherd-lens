@@ -1,5 +1,13 @@
 import { calculateAttentionSignals, type AttentionSignalSummary } from "./attention-signals";
 import type { FeedItem } from "./feed-item";
+import {
+  isAttentionSignalSummary,
+  isFiniteNumber,
+  isNullableString,
+  isRecord,
+  isString,
+} from "./runtime-schema";
+import type { StorageAreaLike } from "./storage";
 
 export type ExperimentKind = "search" | "watch" | "ignore" | "recovery" | "note";
 
@@ -34,10 +42,7 @@ export type UserExperimentState = {
   experiments: UserExperiment[];
 };
 
-export type StorageAreaLike = {
-  get(keys: string[]): Promise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): Promise<void>;
-};
+export type { StorageAreaLike } from "./storage";
 
 export const USER_EXPERIMENT_STORAGE_KEY = "shepherdLensUserExperiments";
 export const MAX_COMPLETED_EXPERIMENTS = 20;
@@ -186,9 +191,59 @@ async function writeUserExperimentState(
 
 function isUserExperimentState(value: unknown): value is UserExperimentState {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    "experiments" in value &&
-    Array.isArray((value as UserExperimentState).experiments)
+    isRecord(value) &&
+    (value.activeExperiment === null || isUserExperiment(value.activeExperiment)) &&
+    Array.isArray(value.experiments) &&
+    value.experiments.every(isUserExperiment)
+  );
+}
+
+function isUserExperiment(value: unknown): value is UserExperiment {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    isExperimentKind(value.kind) &&
+    isString(value.note) &&
+    isString(value.startedAt) &&
+    Number.isFinite(Date.parse(value.startedAt)) &&
+    isNullableString(value.endedAt) &&
+    (value.endedAt === null || Number.isFinite(Date.parse(value.endedAt))) &&
+    isExperimentSnapshot(value.baseline) &&
+    (value.after === null || isExperimentSnapshot(value.after)) &&
+    Array.isArray(value.deltas) &&
+    value.deltas.every(isExperimentSignalDelta)
+  );
+}
+
+function isExperimentSnapshot(value: unknown): value is ExperimentSnapshot {
+  return (
+    isRecord(value) &&
+    isFiniteNumber(value.itemCount) &&
+    value.itemCount >= 0 &&
+    isAttentionSignalSummary(value.signals) &&
+    isString(value.timestamp) &&
+    Number.isFinite(Date.parse(value.timestamp)) &&
+    isString(value.url)
+  );
+}
+
+function isExperimentSignalDelta(value: unknown): value is ExperimentSignalDelta {
+  return (
+    isRecord(value) &&
+    isString(value.id) &&
+    isString(value.label) &&
+    isFiniteNumber(value.before) &&
+    isFiniteNumber(value.after) &&
+    isFiniteNumber(value.delta)
+  );
+}
+
+function isExperimentKind(value: unknown): value is ExperimentKind {
+  return (
+    value === "search" ||
+    value === "watch" ||
+    value === "ignore" ||
+    value === "recovery" ||
+    value === "note"
   );
 }

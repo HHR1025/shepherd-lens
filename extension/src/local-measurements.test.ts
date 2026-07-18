@@ -95,4 +95,8 @@ describe("local measurements", () => {
       "guide",
     ]);
   });
+
+  it("retains non-Latin topic signals", () => {
+    expect(topicTokens("中国城市旅行攻略").length).toBeGreaterThan(0);
+  });
 });

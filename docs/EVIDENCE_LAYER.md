@@ -20,6 +20,8 @@ The goal is not to determine truth.
 
 The goal is to improve visibility into the evidence environment around visible content.
 
+The first versions should use open retrieval sources and public APIs before relying on paid generative models.
+
 ---
 
 ## Core Philosophy
@@ -37,6 +39,7 @@ Shepherd Lens is:
 * a source discovery layer
 * a verification assistant
 * a friction reducer for independent checking
+* a public-source retrieval interface
 
 The system should help users ask:
 
@@ -175,12 +178,30 @@ Examples:
 * court filings
 * company filings
 
+Useful public APIs and sources:
+
+* World Bank
+* OECD
+* IMF
+* Eurostat
+* WHO
+* UN Data
+* national statistics offices
+
 ### Research Sources
 
 * academic papers
 * university publications
 * research institutes
 * public policy institutes
+
+Useful public APIs and sources:
+
+* OpenAlex
+* Crossref
+* Semantic Scholar
+* arXiv
+* PubMed where relevant
 
 ### Independent Reporting
 
@@ -194,6 +215,12 @@ Examples:
 * encyclopedic references
 * public knowledge repositories
 * official documentation
+
+Useful public APIs and sources:
+
+* Wikidata
+* Wikipedia
+* official documentation sites
 
 ---
 
@@ -217,6 +244,24 @@ Independent Reporting Available
 ```
 
 The source panel should prioritize links over generated conclusions.
+
+The first implementation should prefer:
+
+```text
+title / channel / visible text
+-> claim-like phrase or entity extraction
+-> public source search
+-> categorized links
+-> evidence availability summary
+```
+
+It should avoid:
+
+```text
+title
+-> generative model
+-> unsupported verdict
+```
 
 ---
 
@@ -260,6 +305,17 @@ If source discovery is incomplete, say so.
 
 No source found does not always mean no evidence exists.
 
+### Keep Costs Low
+
+Evidence discovery should be useful without paid LLM access.
+
+Preferred order:
+
+1. local rules and entity extraction
+2. public APIs and open indexes
+3. open-source embeddings or rerankers
+4. optional user-configured paid model adapters
+
 ---
 
 ## Roadmap
@@ -270,6 +326,8 @@ No source found does not always mean no evidence exists.
 * source categorization
 * source navigation panel
 * manual source opening
+* public API retrieval proof of concept
+* no generated truth verdicts
 
 ### Phase 2
 
@@ -277,6 +335,8 @@ No source found does not always mean no evidence exists.
 * primary source ratio
 * source diversity metric
 * citation visibility detection
+* basic entity and claim-like phrase extraction
+* open-source reranking where needed
 
 ### Phase 3
 
@@ -305,3 +365,7 @@ Shepherd Lens measures:
 * verification accessibility
 
 The user remains responsible for forming conclusions.
+
+Paid LLM access is not a requirement for the Evidence Layer.
+
+If models are used, they should summarize retrieved sources and uncertainty rather than create unsupported conclusions.

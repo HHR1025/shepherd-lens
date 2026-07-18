@@ -10,7 +10,7 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     outDir: "extension-dist",
-    sourcemap: true,
+    sourcemap: false,
     lib: {
       entry: "extension/src/content.tsx",
       name: "ShepherdLensContent",

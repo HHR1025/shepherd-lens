@@ -1,5 +1,6 @@
 import type { FeedItem } from "./feed-item";
 import { cleanText } from "./feed-item";
+import { countPhraseHits, tokenizeText } from "./text-analysis";
 
 export type LocalMeasureLevel = "low" | "moderate" | "high";
 
@@ -138,16 +139,11 @@ export function calculateTitleHookDensity(items: FeedItem[]) {
 }
 
 export function topicTokens(value: string) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length >= 4 && !stopWords.has(token));
+  return tokenizeText(value, { minLength: 4, stopWords });
 }
 
 function titleHookScore(title: string) {
-  const normalized = title.toLowerCase();
-  const keywordHits = hookWords.filter((word) => normalized.includes(word)).length;
+  const keywordHits = countPhraseHits(title, hookWords);
   const punctuationHits = (title.match(/[!?]/g) ?? []).length;
   const numberHits = (title.match(/\d/g) ?? []).length;
   const uppercaseLetters = title.match(/[A-Z]/g)?.length ?? 0;

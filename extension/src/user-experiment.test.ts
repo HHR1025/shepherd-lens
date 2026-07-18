@@ -25,7 +25,7 @@ function item(overrides: Partial<FeedItem> = {}): FeedItem {
 function memoryStorage(
   initialState?: UserExperimentState,
 ): StorageAreaLike & { data: Record<string, unknown> } {
-  const storage = {
+  const storage: StorageAreaLike & { data: Record<string, unknown> } = {
     data: initialState ? { shepherdLensUserExperiments: initialState } : {},
     async get(keys: string[]) {
       return Object.fromEntries(keys.map((key) => [key, storage.data[key]]));
@@ -129,6 +129,19 @@ describe("user experiment mode", () => {
   it("returns an empty state for invalid storage data", async () => {
     const storage = memoryStorage();
     storage.data.shepherdLensUserExperiments = { experiments: "invalid" };
+
+    await expect(readUserExperimentState(storage)).resolves.toEqual({
+      activeExperiment: null,
+      experiments: [],
+    });
+  });
+
+  it("rejects malformed nested experiment data from storage", async () => {
+    const storage = memoryStorage();
+    storage.data.shepherdLensUserExperiments = {
+      activeExperiment: null,
+      experiments: [{ kind: "search", baseline: "invalid" }],
+    };
 
     await expect(readUserExperimentState(storage)).resolves.toEqual({
       activeExperiment: null,

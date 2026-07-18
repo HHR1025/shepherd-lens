@@ -1,4 +1,5 @@
 import type { FeedItem } from "./feed-item";
+import { countPhraseHits, tokenizeText } from "./text-analysis";
 
 export type AttentionSignal = {
   id: string;
@@ -81,17 +82,7 @@ function titleText(items: FeedItem[]) {
 }
 
 function tokenize(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length >= 3 && !stopWords.has(token));
-}
-
-function keywordHits(text: string, words: string[]) {
-  const normalized = text.toLowerCase();
-
-  return words.reduce((count, word) => count + (normalized.includes(word) ? 1 : 0), 0);
+  return tokenizeText(value, { stopWords });
 }
 
 function parseDurationSeconds(duration: string) {
@@ -122,7 +113,7 @@ export function calculateStimulationDensity(items: FeedItem[]) {
   const uppercaseLetters = (text.match(/[A-Z]/g) ?? []).length;
   const letters = (text.match(/[A-Za-z]/g) ?? []).length || 1;
   const uppercaseRatio = uppercaseLetters / letters;
-  const hooks = keywordHits(text, stimulationWords);
+  const hooks = countPhraseHits(text, stimulationWords);
   const averageTitleLength =
     items.reduce((sum, item) => sum + item.title.length, 0) / items.length;
 
@@ -141,10 +132,9 @@ export function calculateConflictSaturation(items: FeedItem[]) {
   }
 
   const text = titleText(items);
-  const hits = keywordHits(text, conflictWords);
-  const versusFraming = (text.match(/\b(vs|versus|against)\b/gi) ?? []).length;
+  const hits = countPhraseHits(text, [...conflictWords, "against"]);
 
-  return clampScore(((hits + versusFraming) / items.length) * 100);
+  return clampScore((hits / items.length) * 100);
 }
 
 export function calculateNoveltyProxy(items: FeedItem[]) {

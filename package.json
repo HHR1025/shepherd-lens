@@ -7,8 +7,10 @@
     "build": "next build",
     "build:extension": "vite build --config vite.extension.config.ts",
     "start": "next start",
-    "lint": "eslint",
-    "test": "vitest run"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run build:extension"
   },
   "dependencies": {
     "next": "16.2.6",

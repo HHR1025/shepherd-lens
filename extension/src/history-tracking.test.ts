@@ -24,7 +24,7 @@ function item(overrides: Partial<FeedItem> = {}): FeedItem {
 }
 
 function memoryStorage(initialHistory?: HistoryState): StorageAreaLike & { data: Record<string, unknown> } {
-  const storage = {
+  const storage: StorageAreaLike & { data: Record<string, unknown> } = {
     data: initialHistory ? { shepherdLensHistory: initialHistory } : {},
     async get(keys: string[]) {
       return Object.fromEntries(keys.map((key) => [key, storage.data[key]]));
@@ -41,6 +41,7 @@ describe("history tracking", () => {
   it("detects YouTube page types", () => {
     expect(detectPageType("https://www.youtube.com/")).toBe("home");
     expect(detectPageType("https://www.youtube.com/watch?v=abc")).toBe("watch");
+    expect(detectPageType("https://www.youtube.com/results?search_query=travel")).toBe("search");
     expect(detectPageType("https://www.youtube.com/shorts/abc")).toBe("shorts");
     expect(detectPageType("not a url")).toBe("other");
   });
@@ -129,5 +130,14 @@ describe("history tracking", () => {
 
     expect(result.saved).toBe(true);
     expect(history.snapshots).toHaveLength(1);
+  });
+
+  it("rejects malformed nested snapshot data from storage", async () => {
+    const storage = memoryStorage();
+    storage.data.shepherdLensHistory = {
+      snapshots: [{ timestamp: "not-a-date", feedItems: "invalid" }],
+    };
+
+    await expect(readHistory(storage)).resolves.toEqual({ snapshots: [] });
   });
 });

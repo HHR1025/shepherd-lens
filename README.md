@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shepherd Lens
 
-## Getting Started
+Shepherd Lens is a local-first Chrome extension research prototype for observing visible recommendation environments.
 
-First, run the development server:
+It extracts recommendations currently visible in YouTube's DOM, calculates transparent heuristic signals, stores bounded local history, and exposes drift and session-level comparisons through a progressively disclosed sidebar.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Current Capabilities
+
+- Manifest V3 extension with an automatically injected React sidebar
+- YouTube home, watch, search, Shorts, and visible recommendation extraction
+- Dynamic DOM and single-page navigation observation
+- Local attention and feed-structure heuristics
+- Bounded browser-local history, drift comparison, and session timeline signals
+- Small user-marked before/after experiments
+- English and Chinese interface copy
+- Platform adapter boundary for future extractors
+
+## Important Limits
+
+Shepherd Lens observes only visible page content. It does not access YouTube's internal ranking model, reconstruct the complete recommendation system, diagnose users, or determine whether a claim is true.
+
+Current metrics are experimental local heuristics. They should be interpreted as weak signals, not scientific or causal conclusions.
+
+## Repository Structure
+
+```text
+app/                    optional Next.js web shell
+docs/                   product, research, UI, and architecture notes
+extension/public/       Manifest V3 static files
+extension/src/          extension runtime, adapters, analysis, UI, and tests
+extension-dist/         generated unpacked extension
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The main runtime flow is:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+platform adapter
+-> normalized FeedItem[]
+-> local measurements
+-> bounded history
+-> drift/session analysis
+-> injected React UI
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries.
 
-## Learn More
+## Local Development
 
-To learn more about Next.js, take a look at the following resources:
+Requirements:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Node.js 22
+- npm
+- Chromium-based browser
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Install dependencies and run all quality gates:
 
-## Deploy on Vercel
+```bash
+npm ci
+npm run check
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Build the unpacked extension:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build:extension
+```
+
+Then open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `extension-dist`.
+
+After rebuilding, reload the extension and refresh the YouTube tab.
+
+## Commands
+
+```bash
+npm run dev              # optional Next.js web shell
+npm run build            # production web build
+npm run build:extension  # rebuild extension-dist
+npm run lint             # ESLint
+npm run typecheck        # full TypeScript check
+npm test                 # Vitest suite
+npm run check            # lint, typecheck, tests, extension build
+```
+
+## Privacy
+
+Recommendation snapshots and user experiments remain in `chrome.storage.local`. No backend, paid model, or external analysis API is required by the current implementation.
+
+## Project Direction
+
+- [Project master plan](docs/PROJECT_MASTER_PLAN.md)
+- [Research notes](docs/RESEARCH_NOTES.md)
+- [UI philosophy](docs/UI_PHILOSOPHY.md)
+- [Evidence layer](docs/EVIDENCE_LAYER.md)
+- [Platform adapter architecture](docs/PLATFORM_ADAPTER_ARCHITECTURE.md)

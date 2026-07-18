@@ -27,11 +27,16 @@ describe("youtube platform adapter", () => {
   it("detects YouTube pages", () => {
     expect(youtubeAdapter.detectPage("https://www.youtube.com/watch?v=abc")).toBe(true);
     expect(youtubeAdapter.detectPage("https://youtu.be/abc")).toBe(true);
+    expect(youtubeAdapter.detectPage("https://notyoutube.com/watch?v=abc")).toBe(false);
     expect(youtubeAdapter.detectPage("https://example.com")).toBe(false);
   });
 
   it("is selected as the active adapter for YouTube URLs", () => {
-    expect(getActivePlatformAdapter("https://www.youtube.com/").platform).toBe("youtube");
+    expect(getActivePlatformAdapter("https://www.youtube.com/")?.platform).toBe("youtube");
+  });
+
+  it("does not silently fall back to YouTube for unsupported pages", () => {
+    expect(getActivePlatformAdapter("https://example.com/")).toBeUndefined();
   });
 
   it("extracts visible YouTube feed items through the adapter interface", () => {

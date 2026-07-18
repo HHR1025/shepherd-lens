@@ -3,6 +3,7 @@ import { calculateAttentionSignals } from "./attention-signals";
 import type { FeedItem } from "./feed-item";
 import { cleanText } from "./feed-item";
 import type { HistorySnapshot } from "./history-tracking";
+import { tokenizeText } from "./text-analysis";
 
 export type DriftDirection = "rising" | "falling" | "steady";
 
@@ -174,9 +175,5 @@ function createComparableFeedKey(items: FeedItem[]) {
 }
 
 function topicTokens(title: string) {
-  return cleanText(title)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length >= 4 && !topicStopWords.has(token));
+  return tokenizeText(title, { minLength: 4, stopWords: topicStopWords });
 }
