@@ -669,7 +669,17 @@ the user's complete recommendation environment
 ```
 
 Status:
-Next.
+Complete.
+
+Implemented:
+
+* categorical weak-signal, page-snapshot, and session-trend boundaries
+* visible sample-size quality
+* YouTube page context
+* local history depth and recency
+* extraction freshness and visible-item health
+* explicit current-visible-surface limitation
+* English and Chinese progressive-disclosure UI
 
 ---
 
@@ -828,16 +838,15 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 10:
+Current priority after Stage 11:
 
 ```text
-observation quality and validity indicators
--> evidence layer and source navigation
+evidence layer and source navigation
 -> evidence-backed reflection over time
 ```
 
-The next task should build on the local experiment and timeline layers.
+The observation layer now communicates sampling limits, page context, history depth,
+and extraction reliability.
 
-The next task should make the product more honest about sampling limits, page context, history depth, and extraction reliability.
-
-After that, the project should help users inspect source visibility and evidence availability through open retrieval sources and public APIs.
+The next task should help users inspect source visibility and evidence availability
+through open retrieval sources and public APIs without producing truth verdicts.

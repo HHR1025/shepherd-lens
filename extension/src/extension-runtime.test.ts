@@ -102,6 +102,7 @@ describe("ExtensionRuntime", () => {
       adapter: adapter.adapter,
       clearTimeout: timers.clearTimeout,
       getUrl: () => "https://example.test/",
+      now: () => new Date("2026-07-29T12:00:00.000Z"),
       persistence: null,
       root: {} as ParentNode,
       setTimeout: timers.setTimeout,
@@ -113,6 +114,7 @@ describe("ExtensionRuntime", () => {
 
     expect(listener).toHaveBeenCalledTimes(1);
     expect(runtime.getSnapshot().feedItems[0]?.title).toBe("Observed item");
+    expect(runtime.getSnapshot().observedAt).toBe("2026-07-29T12:00:00.000Z");
 
     unsubscribe();
     adapter.notifyPageChange();

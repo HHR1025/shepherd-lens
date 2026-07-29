@@ -42,5 +42,10 @@ describe("localization", () => {
     expect(copy.views.overview).toBe("概览");
     expect(copy.views.evidence).toBe("信源");
     expect(copy.evidence.notTruthScore).toBe("不是真假评分");
+    expect(copy.observation.heading).toBe("观察质量");
+    expect(copy.observation.boundaries.weak_signal).toBe("弱信号");
+    expect(copy.observation.boundaries.page_snapshot).toBe("页面快照");
+    expect(copy.observation.boundaries.session_trend).toBe("会话趋势");
+    expect(copy.observation.notPlatformWide).toBe("仅代表当前可见范围");
   });
 });

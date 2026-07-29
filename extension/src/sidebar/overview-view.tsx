@@ -2,9 +2,8 @@ import { useMemo } from "react";
 import { calculateAttentionSignals } from "../attention-signals";
 import { compareFeedDrift, type DriftComparison } from "../drift-comparison";
 import type { FeedItem } from "../feed-item";
-import { getHistoryStatus, type HistoryState } from "../history-tracking";
+import type { HistoryState } from "../history-tracking";
 import {
-  formatItemCount,
   getCopy,
   type SidebarLanguage,
 } from "../localization";
@@ -15,7 +14,6 @@ import {
 import { analyzeSessionTimeline, type SessionTimelineSummary } from "../session-timeline";
 import {
   formatDriftSummary,
-  formatLastSnapshot,
   formatListOrEmpty,
   formatSnapshotCount,
   getAttentionClimate,
@@ -31,6 +29,7 @@ import type {
   UserExperimentState,
 } from "../user-experiment";
 import { ExperimentPanel } from "./experiment-panel";
+import { ObservationQualityDisclosure } from "./observation-quality-disclosure";
 import {
   KeyValueList,
   MetricBar,
@@ -43,18 +42,21 @@ export function OverviewView({
   feedItems,
   history,
   language,
+  observedAt,
   onCompleteExperiment,
   onStartExperiment,
+  url,
 }: {
   experimentState: UserExperimentState;
   feedItems: FeedItem[];
   history: HistoryState;
   language: SidebarLanguage;
+  observedAt: string | null;
   onCompleteExperiment: () => Promise<void>;
   onStartExperiment: (kind: ExperimentKind, note: string) => Promise<void>;
+  url: string;
 }) {
   const copy = getCopy(language);
-  const historyStatus = getHistoryStatus(history);
   const sampleItems = useMemo(() => feedItems.slice(0, 5), [feedItems]);
   const signalSummary = useMemo(() => calculateAttentionSignals(feedItems), [feedItems]);
   const localMeasurements = useMemo(() => calculateLocalMeasurements(feedItems), [feedItems]);
@@ -66,14 +68,9 @@ export function OverviewView({
     () => analyzeSessionTimeline(feedItems, history.snapshots),
     [feedItems, history.snapshots],
   );
-  const status = feedItems.length > 0 ? copy.watchingPage : copy.scanningPage;
   const attentionSummary = getAttentionClimate(signalSummary.signals, copy);
   const diversitySummary = getFeedDiversity(localMeasurements, copy);
   const driftSummary = formatDriftSummary(driftComparison, language);
-  const lastSaved = formatLastSnapshot(historyStatus.lastSnapshotAt, {
-    notSavedYet: copy.notSavedYet,
-    unknown: copy.unknown,
-  });
 
   return (
     <section className="space-y-2">
@@ -119,24 +116,13 @@ export function OverviewView({
         />
       </SummaryDisclosure>
 
-      <SummaryDisclosure
-        detail={`${historyStatus.snapshotCount} ${copy.snapshots}`}
-        label={copy.overview.localStatus}
-        priority="low"
-        value={formatItemCount(feedItems.length, language)}
-      >
-        <KeyValueList
-          items={[
-            {
-              label: copy.visibleFeed,
-              value: formatItemCount(feedItems.length, language),
-            },
-            { label: copy.extraction, value: status },
-            { label: copy.snapshots, value: `${historyStatus.snapshotCount}` },
-            { label: copy.lastSaved, value: lastSaved },
-          ]}
-        />
-      </SummaryDisclosure>
+      <ObservationQualityDisclosure
+        feedItems={feedItems}
+        history={history}
+        language={language}
+        observedAt={observedAt}
+        url={url}
+      />
 
       <SummaryDisclosure
         detail={getExperimentStatusDetail(experimentState, language)}

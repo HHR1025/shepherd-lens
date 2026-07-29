@@ -21,7 +21,7 @@ import {
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
-const UI_VERSION = "stage-11-modular-sidebar";
+const UI_VERSION = "stage-11-observation-quality";
 
 let injectionFrame: number | undefined;
 const activePlatformAdapter = getActivePlatformAdapter();
@@ -39,6 +39,7 @@ const EMPTY_RUNTIME_SNAPSHOT = {
   experiments: createEmptyUserExperimentState(),
   feedItems: [],
   history: createEmptyHistoryState(),
+  observedAt: null,
 } satisfies ReturnType<ExtensionRuntime["getSnapshot"]>;
 
 function getEmptyRuntimeSnapshot() {
@@ -60,7 +61,12 @@ function AtmosphereSidebar() {
     extensionRuntime?.getSnapshot ?? getEmptyRuntimeSnapshot,
     extensionRuntime?.getSnapshot ?? getEmptyRuntimeSnapshot,
   );
-  const { experiments: experimentState, feedItems, history } = runtimeSnapshot;
+  const {
+    experiments: experimentState,
+    feedItems,
+    history,
+    observedAt,
+  } = runtimeSnapshot;
 
   return (
     <motion.aside
@@ -156,12 +162,14 @@ function AtmosphereSidebar() {
                   feedItems={feedItems}
                   history={history}
                   language={language}
+                  observedAt={observedAt}
                   onCompleteExperiment={async () => {
                     await extensionRuntime?.completeExperiment();
                   }}
                   onStartExperiment={async (kind, note) => {
                     await extensionRuntime?.startExperiment(kind, note);
                   }}
+                  url={window.location.href}
                 />
               ) : (
                 <EvidenceView language={language} />

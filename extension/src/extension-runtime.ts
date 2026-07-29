@@ -18,6 +18,7 @@ export type ExtensionRuntimeSnapshot = Readonly<{
   experiments: UserExperimentState;
   feedItems: FeedItem[];
   history: HistoryState;
+  observedAt: string | null;
 }>;
 
 export type ExtensionRuntimeOptions = {
@@ -28,6 +29,7 @@ export type ExtensionRuntimeOptions = {
   clearTimeout?: (timer: ReturnType<typeof setTimeout>) => void;
   extractionDelayMs?: number;
   maxVisibleItems?: number;
+  now?: () => Date;
   onError?: (operation: string, error: unknown) => void;
   setTimeout?: (callback: () => void, delay: number) => ReturnType<typeof setTimeout>;
 };
@@ -41,6 +43,7 @@ export class ExtensionRuntime {
   private readonly getUrl: () => string;
   private readonly listeners = new Set<RuntimeListener>();
   private readonly maxVisibleItems: number;
+  private readonly now: () => Date;
   private readonly onError: (operation: string, error: unknown) => void;
   private readonly persistence: RuntimePersistence | null;
   private readonly root: ParentNode;
@@ -58,6 +61,7 @@ export class ExtensionRuntime {
     experiments: createEmptyUserExperimentState(),
     feedItems: [],
     history: createEmptyHistoryState(),
+    observedAt: null,
   };
 
   constructor(options: ExtensionRuntimeOptions) {
@@ -71,6 +75,7 @@ export class ExtensionRuntime {
     this.extractionDelayMs = options.extractionDelayMs ?? DEFAULT_EXTRACTION_DELAY_MS;
     this.getUrl = options.getUrl;
     this.maxVisibleItems = options.maxVisibleItems ?? DEFAULT_MAX_VISIBLE_ITEMS;
+    this.now = options.now ?? (() => new Date());
     this.onError = options.onError ?? (() => undefined);
     this.persistence = options.persistence;
     this.root = options.root;
@@ -129,7 +134,10 @@ export class ExtensionRuntime {
 
   extractNow() {
     const feedItems = this.adapter.extractVisibleItems(this.root, this.maxVisibleItems);
-    this.updateSnapshot({ feedItems });
+    this.updateSnapshot({
+      feedItems,
+      observedAt: this.now().toISOString(),
+    });
     void this.persistHistorySnapshot(feedItems);
 
     return feedItems;

@@ -43,6 +43,11 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
     await expect(sidebar(page)).toContainText(/[1-9]\d* items?/);
     await sidebar(page).getByText("Feed diversity", { exact: true }).click();
     await expect(sidebar(page)).not.toContainText("No visible recommendations detected yet.");
+    await sidebar(page).getByText("Observation quality", { exact: true }).click();
+    await expect(sidebar(page)).toContainText("Interpretation boundary");
+    await expect(sidebar(page)).toContainText("Visible sample");
+    await expect(sidebar(page)).toContainText("search results");
+    await expect(sidebar(page)).toContainText("Extraction freshness");
 
     await navigateAsYouTubeSpa(page, "/watch?v=shepherd-lens-e2e");
     await expect(page).toHaveURL(/\/watch\?v=shepherd-lens-e2e/);
@@ -56,7 +61,7 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
     monitorExtensionErrors(secondPage, extensionErrors);
     await openYouTube(secondPage);
     await expectSidebar(secondPage);
-    await sidebar(secondPage).getByText("Local status", { exact: true }).click();
+    await sidebar(secondPage).getByText("Observation quality", { exact: true }).click();
 
     const worker =
       context.serviceWorkers()[0] ??

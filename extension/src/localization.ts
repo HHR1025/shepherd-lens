@@ -1,3 +1,13 @@
+import type {
+  ExtractionFreshness,
+  ExtractionHealth,
+  HistoryDepth,
+  ObservationBoundary,
+  Recency,
+  SampleQuality,
+} from "./observation-quality";
+import type { PageType } from "./history-tracking";
+
 export type SidebarLanguage = "en" | "zh";
 
 export type DriftDirection = "rising" | "falling" | "steady";
@@ -62,6 +72,24 @@ export type SidebarCopy = {
     placeholder: string;
     notTruthScore: string;
     comingSoon: string;
+  };
+  observation: {
+    heading: string;
+    boundary: string;
+    visibleSample: string;
+    pageContext: string;
+    historyDepth: string;
+    historyRecency: string;
+    extractionFreshness: string;
+    extractionHealth: string;
+    notPlatformWide: string;
+    boundaries: Record<ObservationBoundary, string>;
+    sampleQualities: Record<SampleQuality, string>;
+    pageTypes: Record<PageType, string>;
+    historyDepths: Record<HistoryDepth, string>;
+    recencies: Record<Recency, string>;
+    freshness: Record<ExtractionFreshness, string>;
+    health: Record<ExtractionHealth, string>;
   };
   drift: {
     heading: string;
@@ -156,6 +184,54 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
       placeholder: "Evidence navigation is reserved for a later stage.",
       notTruthScore: "not a truth score",
       comingSoon: "coming soon",
+    },
+    observation: {
+      heading: "Observation quality",
+      boundary: "Interpretation boundary",
+      visibleSample: "Visible sample",
+      pageContext: "Page context",
+      historyDepth: "History depth",
+      historyRecency: "History recency",
+      extractionFreshness: "Extraction freshness",
+      extractionHealth: "Extraction health",
+      notPlatformWide: "Limited to the current visible surface",
+      boundaries: {
+        weak_signal: "weak signal",
+        page_snapshot: "page snapshot",
+        session_trend: "session trend",
+      },
+      sampleQualities: {
+        insufficient: "insufficient sample",
+        narrow: "narrow sample",
+        adequate: "adequate sample",
+      },
+      pageTypes: {
+        home: "home",
+        watch: "watch page",
+        search: "search results",
+        shorts: "Shorts",
+        other: "other page",
+      },
+      historyDepths: {
+        none: "no history",
+        shallow: "shallow history",
+        established: "established history",
+      },
+      recencies: {
+        none: "no history",
+        recent: "recent",
+        stale: "stale",
+      },
+      freshness: {
+        waiting: "waiting for extraction",
+        fresh: "fresh",
+        stale: "stale",
+      },
+      health: {
+        waiting: "waiting for extraction",
+        observed: "visible items observed",
+        empty: "no visible items found",
+      },
     },
     drift: {
       heading: "Visible feed drift",
@@ -256,6 +332,54 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
       placeholder: "信源导航已预留，将在后续阶段接入。",
       notTruthScore: "不是真假评分",
       comingSoon: "待接入",
+    },
+    observation: {
+      heading: "观察质量",
+      boundary: "结论边界",
+      visibleSample: "可见样本",
+      pageContext: "页面场景",
+      historyDepth: "历史基础",
+      historyRecency: "历史时效",
+      extractionFreshness: "提取时效",
+      extractionHealth: "提取状态",
+      notPlatformWide: "仅代表当前可见范围",
+      boundaries: {
+        weak_signal: "弱信号",
+        page_snapshot: "页面快照",
+        session_trend: "会话趋势",
+      },
+      sampleQualities: {
+        insufficient: "样本不足",
+        narrow: "样本偏窄",
+        adequate: "样本较充分",
+      },
+      pageTypes: {
+        home: "首页",
+        watch: "播放页",
+        search: "搜索结果页",
+        shorts: "Shorts",
+        other: "其他页面",
+      },
+      historyDepths: {
+        none: "暂无历史",
+        shallow: "历史较浅",
+        established: "历史较充足",
+      },
+      recencies: {
+        none: "暂无记录",
+        recent: "近期",
+        stale: "已过时",
+      },
+      freshness: {
+        waiting: "等待提取",
+        fresh: "刚刚更新",
+        stale: "需要刷新",
+      },
+      health: {
+        waiting: "等待提取",
+        observed: "已识别可见项目",
+        empty: "未发现可见项目",
+      },
     },
     drift: {
       heading: "推荐变化",

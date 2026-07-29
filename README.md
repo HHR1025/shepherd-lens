@@ -12,6 +12,7 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - Local attention and feed-structure heuristics
 - Bounded browser-local history, drift comparison, and session timeline signals
 - Small user-marked before/after experiments
+- Transparent observation-quality boundaries for weak signals, page snapshots, and session trends
 - English and Chinese interface copy
 - Platform adapter boundary for future extractors
 
@@ -20,6 +21,8 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 Shepherd Lens observes only visible page content. It does not access YouTube's internal ranking model, reconstruct the complete recommendation system, diagnose users, or determine whether a claim is true.
 
 Current metrics are experimental local heuristics. They should be interpreted as weak signals, not scientific or causal conclusions.
+The sidebar exposes sample width, page context, history depth and recency, and extraction
+freshness so users can see why an observation is limited.
 
 ## Repository Structure
 

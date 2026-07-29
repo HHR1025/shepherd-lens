@@ -43,11 +43,13 @@ Files:
 * `drift-comparison.ts`
 * `session-timeline.ts`
 * `user-experiment.ts`
+* `observation-quality.ts`
 
 Responsibilities:
 
 * calculate deterministic local signals
 * compare snapshots and sessions
+* derive categorical observation boundaries from visible sample and runtime context
 * remain independent of YouTube DOM selectors and React
 
 Domain calculations should be pure wherever possible and covered by unit tests.
@@ -96,6 +98,7 @@ Responsibilities:
 * own the platform observer lifecycle
 * debounce visible-feed extraction
 * publish stable feed, history, and experiment snapshots
+* timestamp completed extractions for freshness assessment
 * queue same-tab history updates
 * route persistence commands through the background service worker
 
@@ -128,6 +131,19 @@ Pure summary formatting and localized display derivation live in
 live in `sidebar-preferences.ts`. Overview, Evidence, Experiment, navigation, and
 shared display primitives live under `sidebar/`, keeping `content.tsx` focused on
 the injected shell and runtime subscription.
+
+The observation-quality disclosure reuses the low-priority status layer. It presents
+categorical boundaries rather than a synthetic confidence score:
+
+```text
+weak signal
+-> page snapshot
+-> session trend
+```
+
+These boundaries are derived from visible sample size, page context, recent extraction
+time, local history depth and recency, and active-session snapshots. They describe the
+strength of the local observation, not the platform's internal recommendation model.
 
 ## Extension Security
 
