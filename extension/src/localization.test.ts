@@ -42,6 +42,10 @@ describe("localization", () => {
     expect(copy.views.overview).toBe("概览");
     expect(copy.views.evidence).toBe("信源");
     expect(copy.evidence.notTruthScore).toBe("不是真假评分");
+    expect(copy.evidence.availability).toBe("信源可获得性");
+    expect(copy.evidence.searchSources).toBe("查找公共信源");
+    expect(copy.evidence.noResultBoundary).toContain("不等于不存在证据");
+    expect(copy.evidence.categories.reporting).toBe("近期报道");
     expect(copy.observation.heading).toBe("观察质量");
     expect(copy.observation.boundaries.weak_signal).toBe("弱信号");
     expect(copy.observation.boundaries.page_snapshot).toBe("页面快照");

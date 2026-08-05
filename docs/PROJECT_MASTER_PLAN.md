@@ -704,6 +704,23 @@ Reference:
 
 * EVIDENCE_LAYER.md
 
+Status:
+Complete.
+
+Implemented:
+
+* explicit recommendation selection before retrieval
+* deterministic visible-title query derivation
+* local citation, identifier, primary-institution, and independent-reporting cues
+* keyless Crossref research discovery
+* English and Chinese Wikipedia reference discovery
+* GDELT recent-reporting discovery
+* categorized, deduplicated, safe source links
+* independent provider timeout, empty, and failure states
+* explicit no-truth-score and no-result limitations
+* narrowly scoped MV3 host permissions and background-only retrieval
+* English and Chinese progressive-disclosure UI
+
 ---
 
 ## Stage 13: Backend API
@@ -838,15 +855,18 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 11:
+Current priority after Stage 12:
 
 ```text
-evidence layer and source navigation
+backend retrieval boundary and adapter hardening
+-> evidence-metric validation
 -> evidence-backed reflection over time
 ```
 
-The observation layer now communicates sampling limits, page context, history depth,
-and extraction reliability.
+The Evidence Layer now supports explicit, keyless public-source discovery for one selected
+visible recommendation without producing a truth verdict.
 
-The next task should help users inspect source visibility and evidence availability
-through open retrieval sources and public APIs without producing truth verdicts.
+The next task should move public retrieval behind a stable backend adapter boundary,
+add caching and operational controls, and preserve the local-first extension path.
+Evidence Confidence Index scoring should remain deferred until its components have a
+documented validation set and calibration method.

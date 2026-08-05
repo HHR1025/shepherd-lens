@@ -25,6 +25,7 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
         "--no-first-run",
       ],
     });
+    await installEvidenceRoutes(context);
 
     const page = context.pages()[0] ?? await context.newPage();
     monitorExtensionErrors(page, extensionErrors);
@@ -48,6 +49,17 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
     await expect(sidebar(page)).toContainText("Visible sample");
     await expect(sidebar(page)).toContainText("search results");
     await expect(sidebar(page)).toContainText("Extraction freshness");
+
+    await sidebar(page).getByRole("button", { name: "Evidence" }).click();
+    await expect(sidebar(page)).toContainText("Evidence availability");
+    await expect(sidebar(page)).toContainText("Search query");
+    await sidebar(page).getByRole("button", { name: "Find public sources" }).click();
+    await expect(sidebar(page)).toContainText("3 sources discovered");
+    await expect(sidebar(page)).toContainText("Public index status");
+    await expect(sidebar(page)).toContainText("Research sources");
+    await expect(sidebar(page)).toContainText("Reference sources");
+    await expect(sidebar(page)).toContainText("Recent reporting");
+    await expect(sidebar(page)).toContainText("not a truth score");
 
     await navigateAsYouTubeSpa(page, "/watch?v=shepherd-lens-e2e");
     await expect(page).toHaveURL(/\/watch\?v=shepherd-lens-e2e/);
@@ -79,6 +91,52 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
     await rm(userDataDir, { force: true, recursive: true });
   }
 });
+
+async function installEvidenceRoutes(context: BrowserContext) {
+  await context.route("https://api.crossref.org/**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        message: {
+          items: [
+            {
+              DOI: "10.1000/e2e",
+              URL: "https://doi.org/10.1000/e2e",
+              title: ["Deterministic research source"],
+              publisher: "E2E Research Press",
+              published: { "date-parts": [[2026, 1, 2]] },
+            },
+          ],
+        },
+      }),
+    });
+  });
+  await context.route("https://*.wikipedia.org/**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        query: {
+          search: [{ pageid: 42, title: "Deterministic reference source" }],
+        },
+      }),
+    });
+  });
+  await context.route("https://api.gdeltproject.org/**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        articles: [
+          {
+            title: "Deterministic reporting source",
+            url: "https://www.reuters.com/world/e2e",
+            domain: "reuters.com",
+            seendate: "20260102T120000Z",
+          },
+        ],
+      }),
+    });
+  });
+}
 
 async function openYouTube(page: Page) {
   await page.goto("https://www.youtube.com/", {

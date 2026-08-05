@@ -13,6 +13,8 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - Bounded browser-local history, drift comparison, and session timeline signals
 - Small user-marked before/after experiments
 - Transparent observation-quality boundaries for weak signals, page snapshots, and session trends
+- User-triggered public-source discovery through Crossref, Wikipedia, and GDELT
+- Categorized research, reference, and reporting links with visible citation cues
 - English and Chinese interface copy
 - Platform adapter boundary for future extractors
 
@@ -23,6 +25,10 @@ Shepherd Lens observes only visible page content. It does not access YouTube's i
 Current metrics are experimental local heuristics. They should be interpreted as weak signals, not scientific or causal conclusions.
 The sidebar exposes sample width, page context, history depth and recency, and extraction
 freshness so users can see why an observation is limited.
+
+Evidence discovery is also bounded. It searches public indexes for one recommendation
+selected by the user. A discovered link is not proof, and no result does not mean that
+no evidence exists.
 
 ## Repository Structure
 
@@ -43,6 +49,11 @@ platform adapter
 -> bounded history
 -> drift/session analysis
 -> injected React UI
+
+selected FeedItem
+-> transparent evidence query
+-> MV3 background retrieval
+-> categorized public-source links
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries.
@@ -88,15 +99,17 @@ npm run check            # lint, typecheck, tests, extension build
 Install the browser runtime once with `npx playwright install chromium`. The extension
 E2E smoke test then opens Playwright's isolated Chromium against YouTube. It
 checks sidebar injection, visible-feed extraction, watch/Shorts SPA navigation, duplicate
-host prevention, multi-tab injection, and live browser-storage synchronization. Run it
-before a release; it remains separate from the fast deterministic CI gate.
+host prevention, public-source retrieval messaging, multi-tab injection, and live
+browser-storage synchronization. Run it before a release; it remains separate from the
+fast deterministic CI gate.
 
 ## Privacy
 
 Recommendation snapshots and user experiments remain in `chrome.storage.local`. Their
 versioned records are validated on read, and read-modify-write operations are serialized
-by the extension service worker across supported tabs. No backend, paid model, or external
-analysis API is required by the current implementation.
+by the extension service worker across supported tabs. Evidence search is optional and
+user-triggered: only the selected item's derived query is sent to the declared public
+indexes. No complete feed, local history, backend, paid model, or API key is required.
 
 ## Project Direction
 

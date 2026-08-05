@@ -7,6 +7,11 @@ import type {
   SampleQuality,
 } from "./observation-quality";
 import type { PageType } from "./history-tracking";
+import type {
+  EvidenceCategory,
+  EvidenceProvider,
+  EvidenceProviderStatus,
+} from "./evidence-retrieval";
 
 export type SidebarLanguage = "en" | "zh";
 
@@ -62,16 +67,39 @@ export type SidebarCopy = {
     samples: string;
   };
   evidence: {
-    confidence: string;
-    sources: string;
-    primarySources: string;
-    independentReporting: string;
-    sourceDiversity: string;
-    sourceNavigation: string;
-    waiting: string;
-    placeholder: string;
+    availability: string;
+    categories: Record<EvidenceCategory, string>;
+    citationLanguage: string;
+    citationVisible: string;
+    identifier: string;
+    independentMentions: string;
+    localSignals: string;
+    noCitationVisible: string;
+    noRecommendations: string;
+    noResultBoundary: string;
+    noSourcesFound: string;
+    noneVisible: string;
     notTruthScore: string;
-    comingSoon: string;
+    notVisible: string;
+    partialFailure: string;
+    partialResult: string;
+    primaryMentions: string;
+    providerStatus: string;
+    providerStatuses: Record<EvidenceProviderStatus, string>;
+    providers: Record<EvidenceProvider, string>;
+    publicIndexes: string;
+    query: string;
+    ready: string;
+    retry: string;
+    searchComplete: string;
+    searchFailed: string;
+    searchSources: string;
+    searching: string;
+    selectedRecommendation: string;
+    sourceCount: string;
+    sourcesFound: string;
+    visible: string;
+    visibleOnly: string;
   };
   observation: {
     heading: string;
@@ -174,16 +202,51 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
       samples: "Recommendation samples",
     },
     evidence: {
-      confidence: "Evidence confidence",
-      sources: "Sources",
-      primarySources: "Primary sources",
-      independentReporting: "Independent reporting",
-      sourceDiversity: "Source diversity",
-      sourceNavigation: "Source navigation",
-      waiting: "not active yet",
-      placeholder: "Evidence navigation is reserved for a later stage.",
+      availability: "Evidence availability",
+      categories: {
+        research: "Research sources",
+        reference: "Reference sources",
+        reporting: "Recent reporting",
+      },
+      citationLanguage: "Citation language",
+      citationVisible: "citation cues visible",
+      identifier: "Visible link or DOI",
+      independentMentions: "Named independent reporting",
+      localSignals: "Visible evidence cues",
+      noCitationVisible: "no citation cues visible",
+      noRecommendations: "No visible recommendation is available for source discovery.",
+      noResultBoundary: "No result does not mean no evidence exists. Results are discovery links, not proof of a video's claims.",
+      noSourcesFound: "no sources discovered",
+      noneVisible: "none visible",
       notTruthScore: "not a truth score",
-      comingSoon: "coming soon",
+      notVisible: "not visible",
+      partialFailure: "One or more public indexes were unavailable.",
+      partialResult: "partial result",
+      primaryMentions: "Named primary institutions",
+      providerStatus: "Public index status",
+      providerStatuses: {
+        success: "sources found",
+        empty: "no results",
+        error: "unavailable",
+      },
+      providers: {
+        crossref: "Crossref",
+        wikipedia: "Wikipedia",
+        gdelt: "GDELT",
+      },
+      publicIndexes: "Keyless public-source search",
+      query: "Search query",
+      ready: "ready to search",
+      retry: "Retry source search",
+      searchComplete: "search complete",
+      searchFailed: "source search failed",
+      searchSources: "Find public sources",
+      searching: "searching public indexes...",
+      selectedRecommendation: "Selected recommendation",
+      sourceCount: "{count} discovered links",
+      sourcesFound: "{count} sources discovered",
+      visible: "visible",
+      visibleOnly: "Derived only from visible title, channel, and description",
     },
     observation: {
       heading: "Observation quality",
@@ -322,16 +385,51 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
       samples: "推荐样本",
     },
     evidence: {
-      confidence: "证据可信度",
-      sources: "信源",
-      primarySources: "一手来源",
-      independentReporting: "独立报道",
-      sourceDiversity: "来源多样性",
-      sourceNavigation: "信源导航",
-      waiting: "尚未启用",
-      placeholder: "信源导航已预留，将在后续阶段接入。",
+      availability: "信源可获得性",
+      categories: {
+        research: "研究资料",
+        reference: "参考资料",
+        reporting: "近期报道",
+      },
+      citationLanguage: "引用表述",
+      citationVisible: "可见引用线索",
+      identifier: "可见链接或 DOI",
+      independentMentions: "点名独立媒体",
+      localSignals: "可见信源线索",
+      noCitationVisible: "未见引用线索",
+      noRecommendations: "当前没有可用于查找信源的推荐内容。",
+      noResultBoundary: "没有检索结果不等于不存在证据；这些链接只用于辅助查证，不代表视频内容已经得到证实。",
+      noSourcesFound: "暂未找到相关信源",
+      noneVisible: "未见",
       notTruthScore: "不是真假评分",
-      comingSoon: "待接入",
+      notVisible: "未见",
+      partialFailure: "部分公共索引暂时不可用。",
+      partialResult: "部分结果",
+      primaryMentions: "点名一手机构",
+      providerStatus: "公共索引状态",
+      providerStatuses: {
+        success: "已找到信源",
+        empty: "暂无结果",
+        error: "暂不可用",
+      },
+      providers: {
+        crossref: "Crossref",
+        wikipedia: "维基百科",
+        gdelt: "GDELT",
+      },
+      publicIndexes: "免密钥公共信源检索",
+      query: "检索词",
+      ready: "可以开始查找",
+      retry: "重新查找信源",
+      searchComplete: "检索完成",
+      searchFailed: "信源检索失败",
+      searchSources: "查找公共信源",
+      searching: "正在查询公共索引…",
+      selectedRecommendation: "当前查证对象",
+      sourceCount: "找到 {count} 条链接",
+      sourcesFound: "找到 {count} 条信源",
+      visible: "可见",
+      visibleOnly: "仅根据页面可见的标题、频道和简介判断",
     },
     observation: {
       heading: "观察质量",

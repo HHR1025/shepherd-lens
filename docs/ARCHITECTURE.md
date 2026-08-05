@@ -15,6 +15,11 @@ YouTube DOM
 -> bounded local history
 -> drift, session, and experiment comparisons
 -> injected React sidebar
+
+explicitly selected FeedItem
+-> deterministic evidence query
+-> background public-index adapters
+-> validated categorized source links
 ```
 
 ## Layer Boundaries
@@ -44,12 +49,14 @@ Files:
 * `session-timeline.ts`
 * `user-experiment.ts`
 * `observation-quality.ts`
+* `evidence-analysis.ts`
 
 Responsibilities:
 
 * calculate deterministic local signals
 * compare snapshots and sessions
 * derive categorical observation boundaries from visible sample and runtime context
+* derive transparent evidence queries and visible citation cues from one selected item
 * remain independent of YouTube DOM selectors and React
 
 Domain calculations should be pure wherever possible and covered by unit tests.
@@ -106,6 +113,27 @@ The runtime has an idempotent `start()` method and an explicit `stop()` cleanup 
 React subscribes through `useSyncExternalStore`; internal state propagation does not
 depend on page-level custom events.
 
+### Public Retrieval Layer
+
+Files:
+
+* `evidence-retrieval.ts`
+* `browser-evidence-retriever.ts`
+* `background.ts`
+
+Responsibilities:
+
+* accept only bounded, validated evidence-search messages
+* fetch keyless Crossref, MediaWiki, and GDELT endpoints from the MV3 service worker
+* validate untrusted provider JSON before normalization
+* enforce per-provider result caps, timeouts, safe HTTP(S) links, and URL deduplication
+* preserve useful partial results when one provider is empty or unavailable
+
+Retrieval is user-triggered and non-persistent. Only the deterministic query for one
+selected visible recommendation leaves the page; feed history and the full visible feed
+remain local. Provider categories describe where a link was discovered, not whether it
+supports or disproves a claim.
+
 ### Presentation Layer
 
 Files:
@@ -147,7 +175,14 @@ strength of the local observation, not the platform's internal recommendation mo
 
 ## Extension Security
 
-The extension uses declarative content scripts and requests only the `storage` permission. The content script runs only on declared YouTube match patterns. The background service worker serializes validated internal persistence requests and handles extension lifecycle diagnostics.
+The extension uses declarative content scripts, and `storage` is its only named Chrome
+permission. The content script runs only on declared YouTube match patterns. The
+background service worker serializes validated internal persistence requests and handles
+extension lifecycle diagnostics.
+
+Public evidence retrieval adds narrowly scoped HTTPS host permissions for Crossref,
+GDELT, and English and Chinese Wikipedia. The content script does not fetch those hosts
+directly. No wildcard host permission, remote code, API key, or user credential is used.
 
 No remote code is loaded by the extension.
 

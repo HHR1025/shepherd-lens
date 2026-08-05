@@ -2,6 +2,7 @@ import React, { useState, useSyncExternalStore } from "react";
 import { createRoot } from "react-dom/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { createBrowserRuntimePersistence } from "./browser-runtime-persistence";
+import { createBrowserEvidenceRetriever } from "./browser-evidence-retriever";
 import { ExtensionRuntime } from "./extension-runtime";
 import { createEmptyHistoryState } from "./history-tracking";
 import { getCopy } from "./localization";
@@ -21,10 +22,11 @@ import {
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
-const UI_VERSION = "stage-11-observation-quality";
+const UI_VERSION = "stage-12-evidence-navigation";
 
 let injectionFrame: number | undefined;
 const activePlatformAdapter = getActivePlatformAdapter();
+const evidenceRetriever = createBrowserEvidenceRetriever();
 
 const extensionRuntime = activePlatformAdapter
   ? new ExtensionRuntime({
@@ -172,7 +174,11 @@ function AtmosphereSidebar() {
                   url={window.location.href}
                 />
               ) : (
-                <EvidenceView language={language} />
+                <EvidenceView
+                  feedItems={feedItems}
+                  language={language}
+                  retriever={evidenceRetriever}
+                />
               )}
 
               <div>

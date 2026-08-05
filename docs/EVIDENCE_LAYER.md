@@ -329,6 +329,25 @@ Preferred order:
 * public API retrieval proof of concept
 * no generated truth verdicts
 
+Status:
+Implemented in Stage 12.
+
+Current implementation:
+
+* starts only after the user selects one visible recommendation and requests a search
+* shows the exact deterministic query derived from visible metadata
+* queries Crossref, English or Chinese Wikipedia, and GDELT through the MV3 service worker
+* returns categorized research, reference, and reporting links
+* keeps provider failures independent and rejects unsafe or duplicate URLs
+* detects visible citation wording, DOI or URL identifiers, named primary institutions,
+  and named independent reporting organizations using transparent local rules
+* does not persist retrieved results or send the complete feed or local history
+* states that results are discovery links, not verification or truth judgments
+
+The GDELT category is deliberately labeled `reporting`, not `independent reporting`.
+Independence is only surfaced when a known organization is explicitly visible; the
+retrieval provider alone is not treated as proof of editorial independence.
+
 ### Phase 2
 
 * Evidence Confidence Index

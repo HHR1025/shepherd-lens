@@ -9,6 +9,12 @@
   "background": {
     "service_worker": "background.js"
   },
+  "host_permissions": [
+    "https://api.crossref.org/*",
+    "https://api.gdeltproject.org/*",
+    "https://en.wikipedia.org/*",
+    "https://zh.wikipedia.org/*"
+  ],
   "content_scripts": [
     {
       "matches": ["*://youtube.com/*", "*://*.youtube.com/*"],

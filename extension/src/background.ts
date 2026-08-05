@@ -3,6 +3,11 @@ import {
   saveHistorySnapshot,
 } from "./history-tracking";
 import {
+  isEvidenceSearchRequest,
+  retrieveEvidence,
+  type EvidenceSearchResponse,
+} from "./evidence-retrieval";
+import {
   isRuntimePersistenceRequest,
   type RuntimePersistenceRequest,
   type RuntimePersistenceResponse,
@@ -24,18 +29,23 @@ chrome.runtime.onMessage.addListener(
   (
     request: unknown,
     sender,
-    sendResponse: (
-      response: RuntimePersistenceResponse<unknown>,
-    ) => void,
+    sendResponse: (response: BackgroundResponse) => void,
   ) => {
-    if (
-      sender.id !== chrome.runtime.id ||
-      !isRuntimePersistenceRequest(request)
-    ) {
+    if (sender.id !== chrome.runtime.id) {
       return false;
     }
 
-    enqueuePersistence(() => handlePersistenceRequest(request))
+    const operation = isRuntimePersistenceRequest(request)
+      ? enqueuePersistence(() => handlePersistenceRequest(request))
+      : isEvidenceSearchRequest(request)
+        ? retrieveEvidence(request.query, request.language)
+        : null;
+
+    if (!operation) {
+      return false;
+    }
+
+    operation
       .then((value) => {
         sendResponse({
           ok: true,
@@ -43,16 +53,20 @@ chrome.runtime.onMessage.addListener(
         });
       })
       .catch((error: unknown) => {
-        console.warn("[Shepherd Lens] persistence operation failed.", error);
+        console.warn("[Shepherd Lens] background operation failed.", error);
         sendResponse({
           ok: false,
-          error: error instanceof Error ? error.message : "Unknown persistence error.",
+          error: error instanceof Error ? error.message : "Unknown background error.",
         });
       });
 
     return true;
   },
 );
+
+type BackgroundResponse =
+  | RuntimePersistenceResponse<unknown>
+  | EvidenceSearchResponse;
 
 async function handlePersistenceRequest(request: RuntimePersistenceRequest) {
   const storage = chrome.storage.local;
