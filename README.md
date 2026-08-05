@@ -16,6 +16,7 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - User-triggered public-source discovery through Crossref, Wikipedia, and GDELT
 - Categorized research, reference, and reporting links with visible citation cues
 - Optional FastAPI contract for deterministic, traceable interpretation of supplied measurements
+- Versioned bilingual engineering calibration fixtures for every current local measurement
 - English and Chinese interface copy
 - Platform adapter boundary for future extractors
 
@@ -24,6 +25,8 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 Shepherd Lens observes only visible page content. It does not access YouTube's internal ranking model, reconstruct the complete recommendation system, diagnose users, or determine whether a claim is true.
 
 Current metrics are experimental local heuristics. They should be interpreted as weak signals, not scientific or causal conclusions.
+The synthetic calibration corpus is an engineering regression baseline, not a
+ground-truth dataset or evidence of scientific validity.
 The sidebar exposes sample width, page context, history depth and recency, and extraction
 freshness so users can see why an observation is limited.
 
@@ -103,6 +106,7 @@ npm run build:extension  # rebuild extension-dist
 npm run lint             # ESLint
 npm run typecheck        # full TypeScript check
 npm test                 # Vitest suite
+npm run test:calibration # focused bilingual measurement calibration baseline
 npm run test:extension:e2e # headed Playwright Chromium extension smoke test
 npm run check            # lint, typecheck, tests, extension build
 ```
@@ -140,3 +144,4 @@ the current extension has no backend transport.
 - [UI philosophy](docs/UI_PHILOSOPHY.md)
 - [Evidence layer](docs/EVIDENCE_LAYER.md)
 - [Platform adapter architecture](docs/PLATFORM_ADAPTER_ARCHITECTURE.md)
+- [Measurement validation](docs/MEASUREMENT_VALIDATION.md)

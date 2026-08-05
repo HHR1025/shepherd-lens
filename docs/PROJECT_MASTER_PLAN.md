@@ -765,6 +765,35 @@ Deferred operational work:
 
 ---
 
+## Measurement Validation Gate After Stage 13
+
+Goal:
+Create an auditable engineering baseline before adding model interpretation.
+
+Status:
+Engineering calibration complete. Scientific validation remains pending.
+
+Implemented:
+
+* versioned synthetic English, Chinese, and mixed-language fixtures
+* explicit score ranges and rationales for all current attention and structure metrics
+* deterministic report with per-case and aggregate outcomes
+* strict runtime validation for malformed calibration data
+* a focused `npm run test:calibration` quality gate included in CI
+* documented separation between regression calibration and scientific validity
+
+Still required before stronger research claims:
+
+* independently labeled real-feed validation set with consent and privacy controls
+* operational construct definitions and blinded multi-rater protocol
+* inter-rater agreement, held-out error, sensitivity, and language coverage reporting
+
+Reference:
+
+* `MEASUREMENT_VALIDATION.md`
+
+---
+
 ## Stage 14: Open-Source Interpretation Layer
 
 Goal:
@@ -879,19 +908,22 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 13:
+Current priority after the Stage 13 engineering validation gate:
 
 ```text
-public-retrieval adapter implementation and operational hardening
--> evidence-metric validation
+independently labeled measurement validation
+-> public-retrieval adapter implementation and operational hardening
+-> evidence-retrieval and evidence-metric validation
 -> evidence-backed reflection over time
 ```
 
 The optional backend now provides a strict, deterministic contract for interpreting
 supplied measurements without changing the extension's local-first runtime.
 
-The next task should implement and validate open retrieval adapters behind the backend
-protocol, add caching and operational controls, and preserve explicit user consent before
-any future extension transport.
+The next research task should define an independently labeled validation protocol before
+model-generated interpretation is presented as more than exploratory. In parallel, the
+next engineering task may implement and validate open retrieval adapters behind the
+backend protocol, add caching and operational controls, and preserve explicit user
+consent before any future extension transport.
 Evidence Confidence Index scoring should remain deferred until its components have a
 documented validation set and calibration method.

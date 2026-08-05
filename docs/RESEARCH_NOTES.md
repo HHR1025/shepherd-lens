@@ -330,6 +330,21 @@ Models should explain measured structures.
 
 Models should not invent the structures.
 
+## 6. Engineering Calibration Before Model Interpretation
+
+The current metrics now have a versioned synthetic calibration baseline covering every
+attention and feed-structure score in English, Chinese, or mixed-language fixtures.
+This catches implementation drift and makes expected relative behavior reviewable.
+
+Calibration is not validation. The fixtures are designed by the project and therefore
+cannot establish construct validity, generalize to real recommendation feeds, or replace
+independent human labels. Before making stronger claims, the project should define each
+construct operationally, sample real feeds with consent, collect multiple blinded labels,
+measure inter-rater agreement, and evaluate held-out errors across language and page type.
+
+See `MEASUREMENT_VALIDATION.md` for the implemented gate and the scientific validation
+boundary.
+
 Correct architecture:
 
 ```text

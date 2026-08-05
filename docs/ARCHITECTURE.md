@@ -55,6 +55,8 @@ Files:
 * `user-experiment.ts`
 * `observation-quality.ts`
 * `evidence-analysis.ts`
+* `measurement-calibration.ts`
+* `measurement-calibration-corpus.ts`
 
 Responsibilities:
 
@@ -67,6 +69,12 @@ Responsibilities:
 Domain calculations should be pure wherever possible and covered by unit tests.
 Keyword-based title signals include explicit English and Chinese phrase sets; they remain
 transparent heuristics and are tested against calm and hook-heavy examples in both languages.
+
+The versioned synthetic calibration corpus calls these production calculations directly.
+It verifies bounded, deterministic behavior for every current measurement without
+duplicating formulas. This is an engineering regression gate, not scientific validation;
+the distinction and future validation requirements are documented in
+`MEASUREMENT_VALIDATION.md`.
 
 ### Persistence Layer
 

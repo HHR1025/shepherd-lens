@@ -224,7 +224,9 @@ The Core Layer should never directly reference YouTube selectors.
 
 ## Evidence Layer Compatibility
 
-Future Evidence Layer should work across platforms.
+The implemented first Evidence Layer phase consumes normalized `FeedItem` values and
+keeps retrieval logic independent of YouTube selectors. Future source adapters should
+preserve this platform-independent boundary.
 
 Examples:
 
@@ -288,8 +290,12 @@ This document does not introduce:
 * TikTok support
 * OCR
 * AI analysis
-* Evidence Layer
 * Claim Verification
+
+The first Evidence Layer phase was implemented after this architecture milestone. It
+derives a transparent query from one user-selected `FeedItem` and retrieves categorized
+public-source links. Additional platform adapters, OCR, and claim verification remain
+out of scope.
 
 Current objective:
 
@@ -307,7 +313,7 @@ The architecture is considered successful when:
 * platform-specific logic is isolated
 * core metrics become platform-independent
 * future adapters can be added without rewriting metrics
-* future Evidence Layer can operate across platforms
+* the Evidence Layer can consume normalized items from future platforms
 * future Claim Verification can operate across platforms
 
 ---
