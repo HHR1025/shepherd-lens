@@ -730,7 +730,7 @@ Create FastAPI analysis service after the local measurement layer is stronger.
 
 Requirements:
 
-* POST /analyze-feed
+* POST /v1/analyze-feed
 * receive feed JSON
 * receive calculated signals
 * receive local history context where appropriate
@@ -738,6 +738,30 @@ Requirements:
 * preserve uncertainty and evidence references
 * support retrieval adapters for public/open APIs
 * keep paid model calls optional
+
+Status:
+Complete as an optional local service boundary.
+
+Implemented:
+
+* `GET /health` and versioned `POST /v1/analyze-feed`
+* strict bounded Pydantic request and response models
+* normalized feed, attention, structure, compact history, and evidence inputs
+* deterministic attention, diversity, and local-drift interpretation
+* traceable observation basis identifiers
+* weak-signal, page-snapshot, and session-trend uncertainty boundaries
+* HTTP(S)-only evidence references and timezone-aware observation timestamps
+* explicit CORS origin configuration with no wildcard or credentials
+* retrieval and interpretation adapter protocols for future implementations
+* no persistence, model call, paid API, or extension runtime dependency
+* Ruff and pytest backend quality gates in GitHub Actions
+
+Deferred operational work:
+
+* backend public-retrieval adapter implementations
+* retrieval caching, rate limiting, and provider observability
+* extension opt-in transport and consent UI
+* deployment, authentication, and production privacy controls
 
 ---
 
@@ -855,18 +879,19 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after Stage 12:
+Current priority after Stage 13:
 
 ```text
-backend retrieval boundary and adapter hardening
+public-retrieval adapter implementation and operational hardening
 -> evidence-metric validation
 -> evidence-backed reflection over time
 ```
 
-The Evidence Layer now supports explicit, keyless public-source discovery for one selected
-visible recommendation without producing a truth verdict.
+The optional backend now provides a strict, deterministic contract for interpreting
+supplied measurements without changing the extension's local-first runtime.
 
-The next task should move public retrieval behind a stable backend adapter boundary,
-add caching and operational controls, and preserve the local-first extension path.
+The next task should implement and validate open retrieval adapters behind the backend
+protocol, add caching and operational controls, and preserve explicit user consent before
+any future extension transport.
 Evidence Confidence Index scoring should remain deferred until its components have a
 documented validation set and calibration method.

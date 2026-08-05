@@ -15,6 +15,7 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - Transparent observation-quality boundaries for weak signals, page snapshots, and session trends
 - User-triggered public-source discovery through Crossref, Wikipedia, and GDELT
 - Categorized research, reference, and reporting links with visible citation cues
+- Optional FastAPI contract for deterministic, traceable interpretation of supplied measurements
 - English and Chinese interface copy
 - Platform adapter boundary for future extractors
 
@@ -30,10 +31,15 @@ Evidence discovery is also bounded. It searches public indexes for one recommend
 selected by the user. A discovered link is not proof, and no result does not mean that
 no evidence exists.
 
+The optional backend accepts explicitly supplied measurements and returns deterministic
+interpretations. It is not connected to the extension, does not persist requests, and is
+not required for any current extension capability.
+
 ## Repository Structure
 
 ```text
 app/                    optional Next.js web shell
+backend/                optional FastAPI contract, deterministic engine, and Python tests
 docs/                   product, research, UI, and architecture notes
 extension/public/       Manifest V3 static files
 extension/src/          runtime store, service worker, adapters, analysis, UI, and tests
@@ -54,6 +60,10 @@ selected FeedItem
 -> transparent evidence query
 -> MV3 background retrieval
 -> categorized public-source links
+
+optional normalized measurements
+-> versioned FastAPI contract
+-> deterministic traceable interpretation
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries.
@@ -65,6 +75,7 @@ Requirements:
 - Node.js 22
 - npm
 - Chromium-based browser
+- Python 3.11+ for the optional backend
 
 Install dependencies and run all quality gates:
 
@@ -96,6 +107,15 @@ npm run test:extension:e2e # headed Playwright Chromium extension smoke test
 npm run check            # lint, typecheck, tests, extension build
 ```
 
+Run the optional backend quality gates:
+
+```bash
+cd backend
+python -m pip install -e ".[dev]"
+python -m ruff check .
+python -m pytest
+```
+
 Install the browser runtime once with `npx playwright install chromium`. The extension
 E2E smoke test then opens Playwright's isolated Chromium against YouTube. It
 checks sidebar injection, visible-feed extraction, watch/Shorts SPA navigation, duplicate
@@ -110,6 +130,8 @@ versioned records are validated on read, and read-modify-write operations are se
 by the extension service worker across supported tabs. Evidence search is optional and
 user-triggered: only the selected item's derived query is sent to the declared public
 indexes. No complete feed, local history, backend, paid model, or API key is required.
+The optional backend does not receive data unless a future client explicitly calls it;
+the current extension has no backend transport.
 
 ## Project Direction
 

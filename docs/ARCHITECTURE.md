@@ -20,6 +20,11 @@ explicitly selected FeedItem
 -> deterministic evidence query
 -> background public-index adapters
 -> validated categorized source links
+
+optional normalized measurements
+-> strict versioned API models
+-> deterministic analysis engine
+-> traceable structured response
 ```
 
 ## Layer Boundaries
@@ -134,6 +139,30 @@ selected visible recommendation leaves the page; feed history and the full visib
 remain local. Provider categories describe where a link was discovered, not whether it
 supports or disproves a claim.
 
+### Optional Backend Boundary
+
+Files:
+
+* `backend/shepherd_lens_api/models.py`
+* `backend/shepherd_lens_api/analysis.py`
+* `backend/shepherd_lens_api/app.py`
+* `backend/shepherd_lens_api/config.py`
+* `backend/shepherd_lens_api/adapters.py`
+
+Responsibilities:
+
+* accept bounded, versioned feed, measurement, history, and evidence inputs
+* reject unknown fields, inconsistent levels, unsafe URLs, and naive timestamps
+* return deterministic interpretations whose basis points to supplied measurement IDs
+* preserve explicit weak-signal, page-snapshot, and session-trend boundaries
+* expose protocol boundaries for future retrieval and interpretation adapters
+* remain optional and independent of extension runtime behavior
+
+The API route is a thin adapter over the pure analysis engine. It does not extract DOM
+data, persist requests, call remote providers, or run a model. CORS is disabled by
+default and accepts only explicitly configured origins without credentials. The current
+extension does not call this service.
+
 ### Presentation Layer
 
 Files:
@@ -196,9 +225,15 @@ ESLint
 -> Vitest
 -> extension production build
 -> Next.js production build
+
+Python backend changes also require:
+
+Ruff
+-> pytest
 ```
 
-GitHub Actions runs these checks on pushes to `main` and on pull requests.
+GitHub Actions runs independent Node and Python verification jobs on pushes to `main`
+and on pull requests.
 
 Release candidates should also pass:
 
