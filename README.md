@@ -16,6 +16,8 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - User-triggered public-source discovery through Crossref, Wikipedia, and GDELT
 - Categorized research, reference, and reporting links with visible citation cues
 - Optional FastAPI contract for deterministic, traceable interpretation of supplied measurements
+- Optional FastAPI public retrieval endpoint with bounded Crossref and Wikipedia adapters
+- Provider timeout isolation, status metadata, and bounded in-memory retrieval caching
 - Versioned bilingual engineering calibration fixtures for every current local measurement
 - Blinded human-annotation study contract with deterministic multi-rater reliability reporting
 - English and Chinese interface copy
@@ -38,8 +40,9 @@ selected by the user. A discovered link is not proof, and no result does not mea
 no evidence exists.
 
 The optional backend accepts explicitly supplied measurements and returns deterministic
-interpretations. It is not connected to the extension, does not persist requests, and is
-not required for any current extension capability.
+interpretations. It can also retrieve bounded public-source discovery links for one explicit
+query through Crossref and Wikipedia. It is not connected to the extension, does not persist
+requests, and is not required for any current extension capability.
 
 ## Repository Structure
 
@@ -70,6 +73,12 @@ selected FeedItem
 optional normalized measurements
 -> versioned FastAPI contract
 -> deterministic traceable interpretation
+
+optional explicit evidence query
+-> versioned FastAPI retrieval contract
+-> isolated Crossref and Wikipedia adapters
+-> bounded cache and provider observations
+-> categorized discovery links
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries.
@@ -139,7 +148,9 @@ by the extension service worker across supported tabs. Evidence search is option
 user-triggered: only the selected item's derived query is sent to the declared public
 indexes. No complete feed, local history, backend, paid model, or API key is required.
 The optional backend does not receive data unless a future client explicitly calls it;
-the current extension has no backend transport.
+the current extension has no backend transport. Its evidence endpoint accepts only one bounded
+query and language. The process-local cache is capacity- and time-bounded and is not a durable
+user-data store.
 
 ## Project Direction
 

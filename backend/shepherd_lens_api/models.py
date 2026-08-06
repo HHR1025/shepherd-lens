@@ -6,6 +6,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    field_validator,
     model_validator,
 )
 
@@ -13,11 +14,15 @@ API_SCHEMA_VERSION = 1
 MAX_FEED_ITEMS = 50
 MAX_MEASUREMENTS = 20
 MAX_EVIDENCE_REFERENCES = 20
+MAX_EVIDENCE_QUERY_LENGTH = 180
 
 Language = Literal["en", "zh"]
 MeasureLevel = Literal["low", "moderate", "high"]
 PageType = Literal["home", "watch", "search", "shorts", "other"]
 EvidenceCategory = Literal["primary", "research", "reporting", "reference"]
+EvidenceProvider = Literal["crossref", "wikipedia"]
+EvidenceProviderStatus = Literal["success", "empty", "timeout", "error"]
+CacheStatus = Literal["hit", "miss"]
 InterpretationLabel = Literal[
     "unknown",
     "calm",
@@ -116,6 +121,37 @@ class EvidenceReference(StrictModel):
     provider: str = Field(min_length=1, max_length=80)
     category: EvidenceCategory
     source_name: str = Field(min_length=1, max_length=200)
+
+
+class EvidenceSearchRequest(StrictModel):
+    schema_version: Literal[1]
+    language: Language
+    query: str = Field(min_length=1, max_length=MAX_EVIDENCE_QUERY_LENGTH)
+
+    @field_validator("query")
+    @classmethod
+    def normalize_query(cls, value: str) -> str:
+        normalized = " ".join(value.split())
+        if not normalized:
+            raise ValueError("query must contain visible text")
+        return normalized
+
+
+class ProviderObservation(StrictModel):
+    provider: EvidenceProvider
+    status: EvidenceProviderStatus
+    result_count: int = Field(ge=0, le=MAX_EVIDENCE_REFERENCES)
+    elapsed_ms: int = Field(ge=0, le=60_000)
+
+
+class EvidenceSearchResponse(StrictModel):
+    schema_version: Literal[1]
+    query: str = Field(min_length=1, max_length=MAX_EVIDENCE_QUERY_LENGTH)
+    language: Language
+    cache_status: CacheStatus
+    providers: list[ProviderObservation] = Field(min_length=1, max_length=5)
+    sources: list[EvidenceReference] = Field(max_length=MAX_EVIDENCE_REFERENCES)
+    limitations: list[str] = Field(min_length=2, max_length=5)
 
 
 class AnalyzeFeedRequest(StrictModel):

@@ -1,10 +1,12 @@
 # Shepherd Lens API
 
 This optional FastAPI service provides a versioned boundary for deterministic
-interpretation of measurements already calculated by Shepherd Lens clients.
+interpretation of measurements already calculated by Shepherd Lens clients and bounded
+public-source discovery for one explicit query.
 
 It does not scrape platforms, collect feeds, call a model, determine truth, or persist
-requests. The Chrome extension remains fully functional without this service.
+requests. Public retrieval returns navigation links, not verification. The Chrome extension
+remains fully functional without this service and does not currently call it.
 
 ## Local Setup
 
@@ -26,12 +28,38 @@ documentation is available at `http://127.0.0.1:8000/docs`.
 ```text
 GET  /health
 POST /v1/analyze-feed
+POST /v1/evidence/search
 ```
 
 `POST /v1/analyze-feed` accepts normalized visible feed items, measured attention and
 structure signals, optional compact history context, and optional evidence references.
 It returns deterministic interpretations whose `basis` values point back to supplied
 measurement identifiers.
+
+`POST /v1/evidence/search` accepts a schema version, one whitespace-normalized query of
+at most 180 characters, and an English or Chinese language selector. It queries keyless
+Crossref and English or Chinese Wikipedia endpoints concurrently. The response contains
+normalized links, per-provider success, empty, timeout, or error states, bounded elapsed
+times, and a process-local cache status.
+
+A discovered link is not proof that a claim is supported. An empty result does not mean
+that no evidence exists. GDELT backend retrieval remains deferred while the extension's
+existing GDELT integration is evaluated separately.
+
+## Evidence Retrieval Controls
+
+Defaults can be changed only within enforced bounds:
+
+```powershell
+$env:SHEPHERD_LENS_EVIDENCE_TIMEOUT_SECONDS="8"
+$env:SHEPHERD_LENS_EVIDENCE_CACHE_TTL_SECONDS="300"
+$env:SHEPHERD_LENS_EVIDENCE_CACHE_CAPACITY="128"
+```
+
+The timeout must be between 0.1 and 30 seconds, cache TTL between 1 and 3600 seconds,
+and cache capacity between 1 and 1000 entries. Cache keys contain only normalized query
+and language values. Complete provider failures are not cached. The service does not log
+query bodies or provider response bodies.
 
 ## CORS
 
@@ -47,7 +75,8 @@ and credentials are not supported.
 
 ## Boundaries
 
-The service has no database, authentication, remote retrieval, model inference, or cloud
-deployment configuration. Production deployment would additionally require transport
-security, an upstream request-size limit, rate limiting, operational monitoring, and an
-explicit privacy policy.
+The service has no database, authentication, model inference, or cloud deployment
+configuration. Its cache and provider controls are process-local development safeguards,
+not production-grade distributed rate limiting or shared caching. Production deployment
+would additionally require transport security, an upstream request-size limit, distributed
+rate limiting, structured operational monitoring, and an explicit privacy policy.

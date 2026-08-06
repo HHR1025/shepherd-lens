@@ -348,6 +348,18 @@ The GDELT category is deliberately labeled `reporting`, not `independent reporti
 Independence is only surfaced when a known organization is explicitly visible; the
 retrieval provider alone is not treated as proof of editorial independence.
 
+Optional backend follow-up:
+
+* exposes versioned `POST /v1/evidence/search` for one explicit bounded query
+* implements keyless Crossref and English or Chinese Wikipedia adapters
+* isolates provider success, empty, timeout, and error states
+* reports bounded provider elapsed times without logging query contents
+* uses a bounded process-local TTL cache and does not cache complete provider failures
+* remains disconnected from the extension until an explicit consent and transport milestone
+
+The backend does not duplicate GDELT retrieval yet. That provider remains in the extension
+path until its backend response and operational behavior are validated independently.
+
 ### Phase 2
 
 * Evidence Confidence Index

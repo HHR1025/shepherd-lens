@@ -753,14 +753,20 @@ Implemented:
 * HTTP(S)-only evidence references and timezone-aware observation timestamps
 * explicit CORS origin configuration with no wildcard or credentials
 * retrieval and interpretation adapter protocols for future implementations
+* versioned `POST /v1/evidence/search` accepting one bounded explicit query
+* keyless Crossref and English or Chinese Wikipedia retrieval adapters
+* isolated provider success, empty, timeout, and error observations
+* deterministic safe-link normalization and deduplication
+* bounded process-local TTL cache with capacity eviction and no total-failure caching
+* configurable bounded provider timeout and cache controls
 * no persistence, model call, paid API, or extension runtime dependency
 * Ruff and pytest backend quality gates in GitHub Actions
 
 Deferred operational work:
 
-* backend public-retrieval adapter implementations
-* retrieval caching, rate limiting, and provider observability
 * extension opt-in transport and consent UI
+* GDELT backend adapter validation
+* distributed rate limiting, shared caching, and production provider telemetry
 * deployment, authentication, and production privacy controls
 
 ---
@@ -931,19 +937,22 @@ Current priority after the Stage 13 engineering and protocol validation gates:
 
 ```text
 consented independently labeled pilot dataset
--> public-retrieval adapter implementation and operational hardening
 -> evidence-retrieval and evidence-metric validation
+-> explicit-consent extension transport, if research value justifies it
 -> evidence-backed reflection over time
 ```
 
-The optional backend now provides a strict, deterministic contract for interpreting
-supplied measurements without changing the extension's local-first runtime.
+The optional backend now provides strict deterministic analysis and bounded public-retrieval
+contracts without changing the extension's local-first runtime. Its Crossref and Wikipedia
+adapters expose provider status and process-local cache controls, but the extension remains
+disconnected and GDELT backend retrieval remains deferred.
 
 The next research task should execute a small consented pilot using the documented
 protocol, then report missingness, agreement, uncertainty, disagreement, and held-out
 limitations before model-generated interpretation is presented as more than exploratory.
-In parallel, the next engineering task may implement and validate open retrieval adapters
-behind the backend protocol, add caching and operational controls, and preserve explicit user
-consent before any future extension transport.
+The next engineering work should validate retrieval relevance, failure behavior, and source
+categories before considering an explicit-consent extension transport. Deployment-grade
+authentication, distributed rate limiting, shared caching, and privacy controls remain
+separate prerequisites for any hosted backend.
 Evidence Confidence Index scoring should remain deferred until its components have a
 documented validation set and calibration method.

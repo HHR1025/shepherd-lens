@@ -165,6 +165,8 @@ Files:
 * `backend/shepherd_lens_api/app.py`
 * `backend/shepherd_lens_api/config.py`
 * `backend/shepherd_lens_api/adapters.py`
+* `backend/shepherd_lens_api/evidence_adapters.py`
+* `backend/shepherd_lens_api/evidence.py`
 
 Responsibilities:
 
@@ -172,13 +174,23 @@ Responsibilities:
 * reject unknown fields, inconsistent levels, unsafe URLs, and naive timestamps
 * return deterministic interpretations whose basis points to supplied measurement IDs
 * preserve explicit weak-signal, page-snapshot, and session-trend boundaries
-* expose protocol boundaries for future retrieval and interpretation adapters
+* expose protocol boundaries for retrieval and optional interpretation adapters
+* retrieve bounded Crossref and English or Chinese Wikipedia discovery links
+* isolate provider errors and timeouts while preserving partial results
+* expose provider state and bounded elapsed-time observations without logging queries
+* cache non-total-failure retrieval results in a bounded process-local TTL cache
 * remain optional and independent of extension runtime behavior
 
-The API route is a thin adapter over the pure analysis engine. It does not extract DOM
-data, persist requests, call remote providers, or run a model. CORS is disabled by
-default and accepts only explicitly configured origins without credentials. The current
-extension does not call this service.
+The analysis API route remains a thin adapter over the pure analysis engine. The separate
+evidence route accepts one explicit bounded query and uses keyless public providers. Neither
+route extracts DOM data, persists requests, or runs a model. CORS is disabled by default
+and accepts only explicitly configured origins without credentials. The current extension
+does not call this service.
+
+Backend retrieval deliberately supports Crossref and Wikipedia first. GDELT remains in the
+extension-only path until its backend response and operational behavior are independently
+validated. The in-memory cache is a development safeguard, not a distributed production
+control.
 
 ### Presentation Layer
 

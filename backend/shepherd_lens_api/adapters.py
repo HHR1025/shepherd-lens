@@ -1,11 +1,19 @@
 from collections.abc import Sequence
 from typing import Protocol
 
-from .models import AnalyzeFeedRequest, AnalyzeFeedResponse, EvidenceReference, Language
+from .models import (
+    AnalyzeFeedRequest,
+    AnalyzeFeedResponse,
+    EvidenceProvider,
+    EvidenceReference,
+    Language,
+)
 
 
 class RetrievalAdapter(Protocol):
-    """Boundary for future public/open evidence retrieval implementations."""
+    """Boundary for bounded public/open evidence retrieval implementations."""
+
+    provider: EvidenceProvider
 
     async def search(self, query: str, language: Language) -> Sequence[EvidenceReference]: ...
 

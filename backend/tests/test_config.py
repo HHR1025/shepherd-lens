@@ -45,3 +45,32 @@ def test_unconfigured_origin_is_not_allowed():
     )
 
     assert "access-control-allow-origin" not in response.headers
+
+
+def test_evidence_operational_settings_are_loaded_from_bounded_environment(monkeypatch):
+    monkeypatch.setenv("SHEPHERD_LENS_EVIDENCE_TIMEOUT_SECONDS", "4.5")
+    monkeypatch.setenv("SHEPHERD_LENS_EVIDENCE_CACHE_TTL_SECONDS", "120")
+    monkeypatch.setenv("SHEPHERD_LENS_EVIDENCE_CACHE_CAPACITY", "32")
+
+    settings = Settings.from_env()
+
+    assert settings.evidence_provider_timeout_seconds == 4.5
+    assert settings.evidence_cache_ttl_seconds == 120
+    assert settings.evidence_cache_capacity == 32
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("SHEPHERD_LENS_EVIDENCE_TIMEOUT_SECONDS", "0"),
+        ("SHEPHERD_LENS_EVIDENCE_TIMEOUT_SECONDS", "31"),
+        ("SHEPHERD_LENS_EVIDENCE_CACHE_TTL_SECONDS", "3601"),
+        ("SHEPHERD_LENS_EVIDENCE_CACHE_CAPACITY", "1001"),
+        ("SHEPHERD_LENS_EVIDENCE_CACHE_CAPACITY", "not-a-number"),
+    ],
+)
+def test_invalid_evidence_operational_settings_are_rejected(monkeypatch, name, value):
+    monkeypatch.setenv(name, value)
+
+    with pytest.raises(ValueError, match=name):
+        Settings.from_env()
