@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "./content.tsx";
+@source "./sidebar";
 
 :host {
   all: initial;

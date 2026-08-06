@@ -17,6 +17,7 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - Categorized research, reference, and reporting links with visible citation cues
 - Optional FastAPI contract for deterministic, traceable interpretation of supplied measurements
 - Versioned bilingual engineering calibration fixtures for every current local measurement
+- Blinded human-annotation study contract with deterministic multi-rater reliability reporting
 - English and Chinese interface copy
 - Platform adapter boundary for future extractors
 
@@ -27,6 +28,8 @@ Shepherd Lens observes only visible page content. It does not access YouTube's i
 Current metrics are experimental local heuristics. They should be interpreted as weak signals, not scientific or causal conclusions.
 The synthetic calibration corpus is an engineering regression baseline, not a
 ground-truth dataset or evidence of scientific validity.
+The human-validation protocol and analysis toolkit are ready, but no independent
+human study or real-feed validation dataset has been completed.
 The sidebar exposes sample width, page context, history depth and recency, and extraction
 freshness so users can see why an observation is limited.
 
@@ -107,6 +110,7 @@ npm run lint             # ESLint
 npm run typecheck        # full TypeScript check
 npm test                 # Vitest suite
 npm run test:calibration # focused bilingual measurement calibration baseline
+npm run test:validation  # human-study contract, blinding, and reliability tests
 npm run test:extension:e2e # headed Playwright Chromium extension smoke test
 npm run check            # lint, typecheck, tests, extension build
 ```
@@ -145,3 +149,4 @@ the current extension has no backend transport.
 - [Evidence layer](docs/EVIDENCE_LAYER.md)
 - [Platform adapter architecture](docs/PLATFORM_ADAPTER_ARCHITECTURE.md)
 - [Measurement validation](docs/MEASUREMENT_VALIDATION.md)
+- [Human validation protocol](docs/HUMAN_VALIDATION_PROTOCOL.md)

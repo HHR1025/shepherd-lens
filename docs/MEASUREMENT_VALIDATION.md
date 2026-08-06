@@ -2,7 +2,7 @@
 
 ## Status
 
-Engineering calibration baseline implemented.
+Engineering calibration baseline and human-study protocol toolkit implemented.
 
 Scientific validation has not been completed.
 
@@ -96,3 +96,8 @@ independently labeled validation study. At minimum, that work should include:
 Until that study exists, the UI and documentation must continue to describe
 the measurements as local heuristic signals rather than facts, diagnoses, or
 platform-internal properties.
+
+The versioned study contract, blinded packet boundary, reliability fields, sampling,
+consent, training, and reporting requirements are defined in
+`HUMAN_VALIDATION_PROTOCOL.md`. This makes a future pilot reproducible; it does not mean
+that independent ratings have been collected.

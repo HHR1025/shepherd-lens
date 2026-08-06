@@ -345,6 +345,24 @@ measure inter-rater agreement, and evaluate held-out errors across language and 
 See `MEASUREMENT_VALIDATION.md` for the implemented gate and the scientific validation
 boundary.
 
+## 7. Independent Annotation Protocol
+
+The project now defines a versioned human-study contract, bilingual 0-4 anchors for all
+current measurements, blinded annotation packets, and deterministic per-measurement
+reliability reports. Krippendorff's alpha with squared rank distance was selected because
+the planned design uses ordinal judgments, may include more than two raters, and permits
+missing values.
+
+This choice follows Hayes and Krippendorff's general reliability criteria and remains a
+point estimate rather than a validity verdict. Current annotation-method research also
+emphasizes reporting uncertainty and disagreement patterns, while a 2026 audit of NLP
+papers identifies recurring omissions around recruitment, training, language proficiency,
+compensation, demographics, adjudication, and agreement. The project protocol therefore
+requires these fields in any future public study report.
+
+No real feed sample or independent rating has been collected. Protocol readiness must not
+be described as completed scientific validation. See `HUMAN_VALIDATION_PROTOCOL.md`.
+
 Correct architecture:
 
 ```text

@@ -785,12 +785,31 @@ Implemented:
 Still required before stronger research claims:
 
 * independently labeled real-feed validation set with consent and privacy controls
-* operational construct definitions and blinded multi-rater protocol
 * inter-rater agreement, held-out error, sensitivity, and language coverage reporting
+
+Human-study protocol status:
+
+Complete as research infrastructure.
+
+Implemented:
+
+* versioned study and annotation contract
+* bilingual operational definitions and 0-4 anchors for all current measurements
+* local-score and prior-annotation exclusion from blinded packets
+* deterministic per-measurement Krippendorff alpha, missingness, error, and bias reports
+* explicit insufficient-data states without universal pass/fail thresholds
+* documented sampling, consent, training, blinding, adjudication, and reporting rules
+
+Not completed:
+
+* real-feed collection with informed consent
+* independent annotator recruitment and ratings
+* confidence intervals, power analysis, adjudicated labels, or held-out evaluation
 
 Reference:
 
 * `MEASUREMENT_VALIDATION.md`
+* `HUMAN_VALIDATION_PROTOCOL.md`
 
 ---
 
@@ -908,10 +927,10 @@ Bad:
 
 # 16. Current Priority
 
-Current priority after the Stage 13 engineering validation gate:
+Current priority after the Stage 13 engineering and protocol validation gates:
 
 ```text
-independently labeled measurement validation
+consented independently labeled pilot dataset
 -> public-retrieval adapter implementation and operational hardening
 -> evidence-retrieval and evidence-metric validation
 -> evidence-backed reflection over time
@@ -920,10 +939,11 @@ independently labeled measurement validation
 The optional backend now provides a strict, deterministic contract for interpreting
 supplied measurements without changing the extension's local-first runtime.
 
-The next research task should define an independently labeled validation protocol before
-model-generated interpretation is presented as more than exploratory. In parallel, the
-next engineering task may implement and validate open retrieval adapters behind the
-backend protocol, add caching and operational controls, and preserve explicit user
+The next research task should execute a small consented pilot using the documented
+protocol, then report missingness, agreement, uncertainty, disagreement, and held-out
+limitations before model-generated interpretation is presented as more than exploratory.
+In parallel, the next engineering task may implement and validate open retrieval adapters
+behind the backend protocol, add caching and operational controls, and preserve explicit user
 consent before any future extension transport.
 Evidence Confidence Index scoring should remain deferred until its components have a
 documented validation set and calibration method.

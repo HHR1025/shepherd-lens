@@ -57,6 +57,8 @@ Files:
 * `evidence-analysis.ts`
 * `measurement-calibration.ts`
 * `measurement-calibration-corpus.ts`
+* `measurement-validation-definitions.ts`
+* `measurement-validation-study.ts`
 
 Responsibilities:
 
@@ -75,6 +77,13 @@ It verifies bounded, deterministic behavior for every current measurement withou
 duplicating formulas. This is an engineering regression gate, not scientific validation;
 the distinction and future validation requirements are documented in
 `MEASUREMENT_VALIDATION.md`.
+
+The human-validation modules are also pure and remain outside the extension runtime.
+They validate versioned study data, create packets that omit local scores and existing
+annotations, and calculate descriptive per-measurement reliability reports. They do not
+collect feeds, identify raters, alter production scores, or expose validation claims in
+the sidebar. The study governance requirements are documented in
+`HUMAN_VALIDATION_PROTOCOL.md`.
 
 ### Persistence Layer
 

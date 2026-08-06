@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:calibration": "vitest run extension/src/measurement-calibration.test.ts",
+    "test:validation": "vitest run extension/src/measurement-validation-study.test.ts",
     "test:extension:e2e": "npm run build:extension && playwright test --config playwright.extension.config.ts",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build:extension"
   },
