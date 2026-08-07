@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:extension": "vite build --config vite.extension.config.ts && vite build --config vite.background.config.ts",
+    "build:extension": "vite build --config vite.extension.config.ts && vite build --config vite.background.config.ts && node scripts/extension-artifact-metadata.mjs",
+    "check:extension-artifacts": "node scripts/extension-artifact-metadata.mjs --check",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

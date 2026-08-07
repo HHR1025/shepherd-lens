@@ -34,7 +34,9 @@ jobs:
         run: npm run check
 
       - name: Verify committed extension artifacts
-        run: git diff --exit-code -- extension-dist
+        run: |
+          npm run check:extension-artifacts
+          git diff --exit-code -- extension-dist/build-metadata.json extension-dist/manifest.json
 
       - name: Build web shell
         run: npm run build
