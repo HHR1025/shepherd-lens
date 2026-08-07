@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import {
@@ -51,6 +51,36 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
     await expect(sidebar(page)).toContainText("Visible sample");
     await expect(sidebar(page)).toContainText("search results");
     await expect(sidebar(page)).toContainText("Extraction freshness");
+    const exportButton = sidebar(page).getByRole("button", {
+      name: "Download JSON",
+    });
+    await expect(exportButton).toBeDisabled();
+    await sidebar(page).getByRole("checkbox", {
+      name: /I understand what is retained/i,
+    }).check();
+    const downloadPromise = page.waitForEvent("download");
+    await exportButton.click();
+    const download = await downloadPromise;
+    const downloadPath = await download.path();
+
+    expect(downloadPath).not.toBeNull();
+    const pilotBundle = JSON.parse(
+      await readFile(downloadPath as string, "utf8"),
+    ) as {
+      blinded: { cases: unknown[] };
+      consent: { confirmed: boolean };
+      coordinator: { cases: unknown[] };
+    };
+    expect(pilotBundle.consent.confirmed).toBe(true);
+    expect(pilotBundle.coordinator.cases.length).toBeGreaterThan(0);
+    expect(pilotBundle.blinded.cases).toHaveLength(
+      pilotBundle.coordinator.cases.length,
+    );
+    const serializedPilot = JSON.stringify(pilotBundle);
+    expect(serializedPilot).not.toContain("youtube.com");
+    expect(JSON.stringify(pilotBundle.blinded)).not.toContain(
+      "localMeasurements",
+    );
 
     await sidebar(page).getByRole("button", { name: "Evidence" }).click();
     await expect(sidebar(page)).toContainText("Evidence availability");

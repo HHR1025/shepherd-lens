@@ -107,6 +107,30 @@ Packet ordering is deterministic for reproducibility. If a study needs
 counterbalanced order, that assignment should occur in a separate documented
 layer without changing case contents.
 
+## Local Pilot Export
+
+The extension now exposes an explicit, user-initiated export inside the
+Observation Quality disclosure. Export remains disabled until the user confirms
+that they understand what the local file retains.
+
+The versioned JSON bundle contains two deliberately separated views:
+
+* `coordinator.cases` retains deterministic local measurements for later
+  comparison with independent ratings;
+* `blinded.cases` and bilingual measurement prompts omit local measurements,
+  annotations, and rater identities.
+
+Before serialization, the export removes page and video URLs, descriptions,
+metadata, item identifiers, and precise observation times. It retains titles,
+channel names, durations, platform labels, observation dates, and page types
+because these are required for annotation. Equivalent feeds are deduplicated,
+and case and item counts are bounded.
+
+The complete bundle must remain with the study coordinator. Annotators should
+receive only the `blinded` section. The extension does not upload the bundle,
+recruit participants, establish consent for another person, or collect ratings.
+Creating a file is study preparation, not completion of a human study.
+
 ## Reliability Analysis
 
 `analyzeValidationStudy` reports each measurement separately. It uses
@@ -175,7 +199,7 @@ all current measurement definitions, and malformed input rejection.
 
 The repository does not currently contain:
 
-* real user feed snapshots;
+* a committed or independently reviewed real-user pilot dataset;
 * recruited annotators or completed independent ratings;
 * confidence intervals or power calculations;
 * an annotation collection UI;

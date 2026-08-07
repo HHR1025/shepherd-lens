@@ -119,6 +119,17 @@ export type SidebarCopy = {
     freshness: Record<ExtractionFreshness, string>;
     health: Record<ExtractionHealth, string>;
   };
+  researchExport: {
+    heading: string;
+    ready: string;
+    unavailable: string;
+    description: string;
+    confirmation: string;
+    coordinatorWarning: string;
+    download: string;
+    downloaded: string;
+    failed: string;
+  };
   drift: {
     heading: string;
     waiting: string;
@@ -295,6 +306,17 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
         observed: "visible items observed",
         empty: "no visible items found",
       },
+    },
+    researchExport: {
+      heading: "Research data export",
+      ready: "local export available",
+      unavailable: "no cases available",
+      description: "Creates a local JSON bundle only. Titles and channels remain for annotation; links, descriptions, metadata, identifiers, and precise observation times are removed.",
+      confirmation: "I understand what is retained and agree to create this local research export.",
+      coordinatorWarning: "Keep the complete file with the study coordinator. Give annotators only the blinded section.",
+      download: "Download JSON",
+      downloaded: "downloaded locally",
+      failed: "export failed",
     },
     drift: {
       heading: "Visible feed drift",
@@ -478,6 +500,17 @@ export const sidebarCopy: Record<SidebarLanguage, SidebarCopy> = {
         observed: "已识别可见项目",
         empty: "未发现可见项目",
       },
+    },
+    researchExport: {
+      heading: "研究数据导出",
+      ready: "可在本机生成",
+      unavailable: "暂无可导出样本",
+      description: "仅在本机生成 JSON，不会自动上传。标题和频道名会保留用于人工标注；链接、简介、元数据、标识符和精确时间会移除。",
+      confirmation: "我已了解导出内容，并同意在本机生成这份研究数据包。",
+      coordinatorWarning: "完整文件仅供研究协调者保存；交给标注者时只使用 blinded 部分。",
+      download: "下载 JSON",
+      downloaded: "已下载到本机",
+      failed: "导出失败",
     },
     drift: {
       heading: "推荐变化",

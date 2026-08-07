@@ -8,6 +8,7 @@ import {
 } from "../localization";
 import { assessObservationQuality } from "../observation-quality";
 import { KeyValueList, SummaryDisclosure } from "./primitives";
+import { PilotExportPanel } from "./pilot-export-panel";
 
 export function ObservationQualityDisclosure({
   feedItems,
@@ -87,6 +88,13 @@ export function ObservationQualityDisclosure({
         <p className="border-t border-white/8 pt-3 text-[10px] leading-4 text-stone-600">
           {copy.observation.notPlatformWide}
         </p>
+        <PilotExportPanel
+          copy={copy.researchExport}
+          feedItems={feedItems}
+          history={history}
+          observedAt={observedAt}
+          url={url}
+        />
       </div>
     </SummaryDisclosure>
   );

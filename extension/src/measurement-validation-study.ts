@@ -156,6 +156,27 @@ export function createBlindedAnnotationPacket(
     ALL_CALIBRATED_MEASUREMENT_IDS,
 ): BlindedAnnotationPacket {
   const study = validateMeasurementValidationStudy(studyValue);
+
+  return {
+    schemaVersion: study.schemaVersion,
+    protocolVersion: study.protocolVersion,
+    studyId: study.studyId,
+    measurements: createBlindedMeasurementPrompts(requestedMeasurementIds),
+    cases: study.cases.map((studyCase) => ({
+      id: studyCase.id,
+      language: studyCase.language,
+      pageType: studyCase.pageType,
+      topic: studyCase.topic,
+      observedAt: studyCase.observedAt,
+      items: studyCase.items.map(cloneFeedItem),
+    })),
+  };
+}
+
+export function createBlindedMeasurementPrompts(
+  requestedMeasurementIds: readonly CalibratedMeasurementId[] =
+    ALL_CALIBRATED_MEASUREMENT_IDS,
+) {
   const ids = [...requestedMeasurementIds];
 
   if (
@@ -168,20 +189,7 @@ export function createBlindedAnnotationPacket(
     );
   }
 
-  return {
-    schemaVersion: study.schemaVersion,
-    protocolVersion: study.protocolVersion,
-    studyId: study.studyId,
-    measurements: ids.map((id) => cloneDefinition(id)),
-    cases: study.cases.map((studyCase) => ({
-      id: studyCase.id,
-      language: studyCase.language,
-      pageType: studyCase.pageType,
-      topic: studyCase.topic,
-      observedAt: studyCase.observedAt,
-      items: studyCase.items.map(cloneFeedItem),
-    })),
-  };
+  return ids.map((id) => cloneDefinition(id));
 }
 
 export function analyzeValidationStudy(

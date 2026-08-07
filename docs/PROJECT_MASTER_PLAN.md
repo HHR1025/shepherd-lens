@@ -805,12 +805,17 @@ Implemented:
 * deterministic per-measurement Krippendorff alpha, missingness, error, and bias reports
 * explicit insufficient-data states without universal pass/fail thresholds
 * documented sampling, consent, training, blinding, adjudication, and reporting rules
+* explicit local pilot export confirmation in the Observation Quality disclosure
+* bounded coordinator and blinded JSON views generated from current and recent feeds
+* removal of URLs, descriptions, metadata, identifiers, and precise observation times
+* bilingual export copy with no automatic upload or backend transport
 
 Not completed:
 
 * real-feed collection with informed consent
 * independent annotator recruitment and ratings
 * confidence intervals, power analysis, adjudicated labels, or held-out evaluation
+* execution and independent review of an exported real-user pilot dataset
 
 Reference:
 
@@ -981,9 +986,11 @@ contracts without changing the extension's local-first runtime. Its Crossref and
 adapters expose provider status and process-local cache controls, but the extension remains
 disconnected and GDELT backend retrieval remains deferred.
 
-The next research task should execute a small consented pilot using the documented
-protocol, then report missingness, agreement, uncertainty, disagreement, and held-out
-limitations before model-generated interpretation is presented as more than exploratory.
+The extension can now prepare a local, consent-aware, redacted coordinator and blinded
+pilot bundle. The next research task should execute a small consented pilot using that
+export and the documented protocol, then report missingness, agreement, uncertainty,
+disagreement, and held-out limitations before model-generated interpretation is presented
+as more than exploratory.
 The offline retrieval baseline now validates contracts, deterministic metrics, failure
 semantics, and source categories against a small hand-authored bilingual corpus. The next
 research work must test those measures on frozen live-provider snapshots with independent

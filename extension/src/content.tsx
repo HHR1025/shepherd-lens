@@ -22,7 +22,7 @@ import {
 import styles from "./sidebar.css?inline";
 
 const HOST_ID = "shepherd-lens-sidebar-root";
-const UI_VERSION = "stage-12-evidence-navigation";
+const UI_VERSION = "consent-aware-pilot-export-v1";
 
 let injectionFrame: number | undefined;
 const activePlatformAdapter = getActivePlatformAdapter();

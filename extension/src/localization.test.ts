@@ -7,6 +7,12 @@ import {
 } from "./localization";
 
 describe("localization", () => {
+  it("provides bilingual consent-aware pilot export copy", () => {
+    expect(getCopy("en").researchExport.download).toBe("Download JSON");
+    expect(getCopy("zh").researchExport.download).toBe("下载 JSON");
+    expect(getCopy("zh").researchExport.description).toContain("不会自动上传");
+  });
+
   it("defaults unknown language values to English", () => {
     expect(normalizeLanguage("zh")).toBe("zh");
     expect(normalizeLanguage("en")).toBe("en");
