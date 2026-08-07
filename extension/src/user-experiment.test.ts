@@ -198,4 +198,33 @@ describe("user experiment mode", () => {
       createEmptyUserExperimentState(),
     );
   });
+
+  it("rejects oversized experiment storage and direct writes", async () => {
+    const storage = memoryStorage();
+    const experiment = createExperiment(
+      "note",
+      "bounded note",
+      [item()],
+      "https://www.youtube.com/",
+      new Date("2026-07-07T00:00:00.000Z"),
+    );
+    storage.data.shepherdLensUserExperiments = {
+      version: USER_EXPERIMENT_SCHEMA_VERSION,
+      activeExperiment: null,
+      experiments: Array.from({ length: 21 }, () => experiment),
+    };
+
+    await expect(readUserExperimentState(storage)).resolves.toEqual(
+      createEmptyUserExperimentState(),
+    );
+    await expect(
+      startUserExperiment(
+        memoryStorage(),
+        "note",
+        "x".repeat(501),
+        [item()],
+        "https://www.youtube.com/",
+      ),
+    ).rejects.toThrow("Experiment note exceeds persistence boundaries");
+  });
 });

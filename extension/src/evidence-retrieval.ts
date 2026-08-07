@@ -178,7 +178,8 @@ async function retrieveWikipedia(
     if (
       !isRecord(result) ||
       !isString(result.title) ||
-      !Number.isInteger(result.pageid)
+      !Number.isInteger(result.pageid) ||
+      (result.pageid as number) <= 0
     ) {
       return [];
     }
@@ -293,6 +294,10 @@ function normalizeSafeUrl(value: string) {
     const url = new URL(value);
 
     if (url.protocol !== "https:" && url.protocol !== "http:") {
+      return null;
+    }
+
+    if (!url.hostname || url.username || url.password) {
       return null;
     }
 

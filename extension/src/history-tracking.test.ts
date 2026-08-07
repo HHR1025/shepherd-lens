@@ -5,6 +5,7 @@ import {
   createHistorySnapshot,
   detectPageType,
   HISTORY_SCHEMA_VERSION,
+  MAX_HISTORY_SNAPSHOTS,
   readHistory,
   saveHistorySnapshot,
   shouldSaveSnapshot,
@@ -136,6 +137,19 @@ describe("history tracking", () => {
     expect(history.snapshots).toHaveLength(1);
   });
 
+  it("rejects oversized direct writes before touching storage", async () => {
+    const storage = memoryStorage();
+
+    await expect(
+      saveHistorySnapshot(
+        storage,
+        Array.from({ length: 61 }, () => item()),
+        "https://www.youtube.com/",
+      ),
+    ).rejects.toThrow("Feed items exceed persistence boundaries");
+    expect(storage.data).toEqual({});
+  });
+
   it("migrates valid legacy history without discarding snapshots", async () => {
     const storage = memoryStorage();
     const snapshot = createHistorySnapshot(
@@ -180,6 +194,34 @@ describe("history tracking", () => {
     const storage = memoryStorage();
     storage.data.shepherdLensHistory = {
       snapshots: [{ timestamp: "not-a-date", feedItems: "invalid" }],
+    };
+
+    await expect(readHistory(storage)).resolves.toEqual(createEmptyHistoryState());
+  });
+
+  it("rejects stored history that exceeds snapshot and item limits", async () => {
+    const storage = memoryStorage();
+    const snapshot = createHistorySnapshot(
+      [item()],
+      "https://www.youtube.com/",
+      new Date("2026-06-03T00:00:00.000Z"),
+    )!;
+    storage.data.shepherdLensHistory = {
+      version: HISTORY_SCHEMA_VERSION,
+      snapshots: Array.from(
+        { length: MAX_HISTORY_SNAPSHOTS + 1 },
+        (_, index) => ({ ...snapshot, id: `snapshot-${index}` }),
+      ),
+    };
+
+    await expect(readHistory(storage)).resolves.toEqual(createEmptyHistoryState());
+
+    storage.data.shepherdLensHistory = {
+      version: HISTORY_SCHEMA_VERSION,
+      snapshots: [{
+        ...snapshot,
+        feedItems: Array.from({ length: 61 }, () => item()),
+      }],
     };
 
     await expect(readHistory(storage)).resolves.toEqual(createEmptyHistoryState());

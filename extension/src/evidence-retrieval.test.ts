@@ -123,6 +123,53 @@ describe("public evidence retrieval", () => {
     });
   });
 
+  it("rejects credential-bearing URLs and non-positive Wikipedia page ids", async () => {
+    const fetch = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+
+      if (url.includes("crossref")) {
+        return jsonResponse({
+          message: {
+            items: [{
+              URL: "https://user:secret@example.com/paper",
+              title: ["Credential leak"],
+            }],
+          },
+        });
+      }
+
+      if (url.includes("wikipedia")) {
+        return jsonResponse({
+          query: {
+            search: [
+              { pageid: 0, title: "Zero" },
+              { pageid: -1, title: "Negative" },
+            ],
+          },
+        });
+      }
+
+      return jsonResponse({
+        articles: [{
+          title: "Credential leak",
+          url: "https://user:secret@example.com/report",
+        }],
+      });
+    });
+
+    const result = await retrieveEvidence("air quality", "en", {
+      fetch,
+      timeoutMs: 100,
+    });
+
+    expect(result.sources).toEqual([]);
+    expect(result.providers).toEqual({
+      crossref: "empty",
+      gdelt: "empty",
+      wikipedia: "empty",
+    });
+  });
+
   it("preserves successful providers when another provider fails", async () => {
     const fetch = vi.fn(async (input: string | URL | Request) => {
       const url = String(input);

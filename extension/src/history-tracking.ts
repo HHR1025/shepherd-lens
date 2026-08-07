@@ -3,10 +3,13 @@ import { calculateAttentionSignals } from "./attention-signals";
 import type { FeedItem } from "./feed-item";
 import { normalizeKey } from "./feed-item";
 import {
+  assertBoundedString,
+  assertPersistableFeedItems,
   isAttentionSignalSummary,
-  isFeedItem,
+  isBoundedString,
+  isPersistableFeedItems,
   isRecord,
-  isString,
+  MAX_PERSISTED_URL_LENGTH,
 } from "./runtime-schema";
 import type { StorageAreaLike } from "./storage";
 import { assertSupportedStorageVersion } from "./storage-schema";
@@ -174,6 +177,8 @@ export async function saveHistorySnapshot(
   url: string,
   now = new Date(),
 ) {
+  assertPersistableFeedItems(feedItems);
+  assertBoundedString(url, MAX_PERSISTED_URL_LENGTH, "History URL");
   const history = await readHistory(storage);
   const nextSnapshot = createHistorySnapshot(feedItems, url, now);
 
@@ -206,6 +211,7 @@ function isHistoryState(value: unknown): value is HistoryState {
     isRecord(value) &&
     value.version === HISTORY_SCHEMA_VERSION &&
     Array.isArray(value.snapshots) &&
+    value.snapshots.length <= MAX_HISTORY_SNAPSHOTS &&
     value.snapshots.every(isHistorySnapshot)
   );
 }
@@ -217,6 +223,7 @@ function isLegacyHistoryState(
     isRecord(value) &&
     value.version === undefined &&
     Array.isArray(value.snapshots) &&
+    value.snapshots.length <= MAX_HISTORY_SNAPSHOTS &&
     value.snapshots.every(isHistorySnapshot)
   );
 }
@@ -224,15 +231,14 @@ function isLegacyHistoryState(
 function isHistorySnapshot(value: unknown): value is HistorySnapshot {
   return (
     isRecord(value) &&
-    isString(value.id) &&
-    isString(value.timestamp) &&
+    isBoundedString(value.id, 200) &&
+    isBoundedString(value.timestamp, 64) &&
     Number.isFinite(Date.parse(value.timestamp)) &&
-    isString(value.url) &&
+    isBoundedString(value.url, MAX_PERSISTED_URL_LENGTH) &&
     isPageType(value.pageType) &&
-    Array.isArray(value.feedItems) &&
-    value.feedItems.every(isFeedItem) &&
+    isPersistableFeedItems(value.feedItems) &&
     isAttentionSignalSummary(value.signals) &&
-    isString(value.feedKey)
+    isBoundedString(value.feedKey, 16_384)
   );
 }
 

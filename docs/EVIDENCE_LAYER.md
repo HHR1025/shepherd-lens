@@ -360,6 +360,15 @@ Optional backend follow-up:
 The backend does not duplicate GDELT retrieval yet. That provider remains in the extension
 path until its backend response and operational behavior are validated independently.
 
+Contract boundary:
+
+* the MV3 retrieval result and the optional backend response are separate versioned contracts
+* the extension currently includes GDELT and publication timestamps; the backend does not
+* the backend distinguishes timeout from error; the extension currently presents both as error
+* a future extension-to-backend connection must use an explicit adapter and contract tests
+* neither side may infer that similarly named fields are wire-compatible without that adapter
+* both paths reject credential-bearing source URLs and non-positive Wikipedia page identifiers
+
 Evaluation baseline status:
 
 * a versioned English and Chinese offline corpus covers relevant, partially relevant,

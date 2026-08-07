@@ -1,11 +1,16 @@
 import { calculateAttentionSignals, type AttentionSignalSummary } from "./attention-signals";
 import type { FeedItem } from "./feed-item";
 import {
+  assertBoundedString,
+  assertPersistableFeedItems,
   isAttentionSignalSummary,
+  isBoundedString,
   isFiniteNumber,
   isNullableString,
   isRecord,
-  isString,
+  MAX_PERSISTED_FEED_ITEMS,
+  MAX_PERSISTED_NOTE_LENGTH,
+  MAX_PERSISTED_URL_LENGTH,
 } from "./runtime-schema";
 import type { StorageAreaLike } from "./storage";
 import { assertSupportedStorageVersion } from "./storage-schema";
@@ -167,6 +172,9 @@ export async function startUserExperiment(
   url: string,
   now = new Date(),
 ) {
+  assertPersistableFeedItems(feedItems);
+  assertBoundedString(note, MAX_PERSISTED_NOTE_LENGTH, "Experiment note");
+  assertBoundedString(url, MAX_PERSISTED_URL_LENGTH, "Experiment URL");
   const state = await readUserExperimentState(storage);
   const nextState: UserExperimentState = {
     ...state,
@@ -185,6 +193,8 @@ export async function completeActiveUserExperiment(
   url: string,
   now = new Date(),
 ) {
+  assertPersistableFeedItems(feedItems);
+  assertBoundedString(url, MAX_PERSISTED_URL_LENGTH, "Experiment URL");
   const state = await readUserExperimentState(storage);
 
   if (!state.activeExperiment) {
@@ -218,6 +228,7 @@ function isUserExperimentState(value: unknown): value is UserExperimentState {
     value.version === USER_EXPERIMENT_SCHEMA_VERSION &&
     (value.activeExperiment === null || isUserExperiment(value.activeExperiment)) &&
     Array.isArray(value.experiments) &&
+    value.experiments.length <= MAX_COMPLETED_EXPERIMENTS &&
     value.experiments.every(isUserExperiment)
   );
 }
@@ -230,6 +241,7 @@ function isLegacyUserExperimentState(
     value.version === undefined &&
     (value.activeExperiment === null || isUserExperiment(value.activeExperiment)) &&
     Array.isArray(value.experiments) &&
+    value.experiments.length <= MAX_COMPLETED_EXPERIMENTS &&
     value.experiments.every(isUserExperiment)
   );
 }
@@ -237,16 +249,17 @@ function isLegacyUserExperimentState(
 function isUserExperiment(value: unknown): value is UserExperiment {
   return (
     isRecord(value) &&
-    isString(value.id) &&
+    isBoundedString(value.id, 200) &&
     isExperimentKind(value.kind) &&
-    isString(value.note) &&
-    isString(value.startedAt) &&
+    isBoundedString(value.note, MAX_PERSISTED_NOTE_LENGTH) &&
+    isBoundedString(value.startedAt, 64) &&
     Number.isFinite(Date.parse(value.startedAt)) &&
     isNullableString(value.endedAt) &&
     (value.endedAt === null || Number.isFinite(Date.parse(value.endedAt))) &&
     isExperimentSnapshot(value.baseline) &&
     (value.after === null || isExperimentSnapshot(value.after)) &&
     Array.isArray(value.deltas) &&
+    value.deltas.length <= 10 &&
     value.deltas.every(isExperimentSignalDelta)
   );
 }
@@ -256,20 +269,25 @@ function isExperimentSnapshot(value: unknown): value is ExperimentSnapshot {
     isRecord(value) &&
     isFiniteNumber(value.itemCount) &&
     value.itemCount >= 0 &&
+    value.itemCount <= MAX_PERSISTED_FEED_ITEMS &&
     isAttentionSignalSummary(value.signals) &&
-    isString(value.timestamp) &&
+    isBoundedString(value.timestamp, 64) &&
     Number.isFinite(Date.parse(value.timestamp)) &&
-    isString(value.url)
+    isBoundedString(value.url, MAX_PERSISTED_URL_LENGTH)
   );
 }
 
 function isExperimentSignalDelta(value: unknown): value is ExperimentSignalDelta {
   return (
     isRecord(value) &&
-    isString(value.id) &&
-    isString(value.label) &&
+    isBoundedString(value.id, 80) &&
+    isBoundedString(value.label, 100) &&
     isFiniteNumber(value.before) &&
+    value.before >= 0 &&
+    value.before <= 100 &&
     isFiniteNumber(value.after) &&
+    value.after >= 0 &&
+    value.after <= 100 &&
     isFiniteNumber(value.delta)
   );
 }

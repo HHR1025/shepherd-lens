@@ -1,6 +1,12 @@
 import type { FeedItem } from "./feed-item";
 import type { HistoryState } from "./history-tracking";
-import { isFeedItem, isRecord, isString } from "./runtime-schema";
+import {
+  isBoundedString,
+  isPersistableFeedItems,
+  isRecord,
+  MAX_PERSISTED_NOTE_LENGTH,
+  MAX_PERSISTED_URL_LENGTH,
+} from "./runtime-schema";
 import {
   isExperimentKind,
   type ExperimentKind,
@@ -8,6 +14,7 @@ import {
 } from "./user-experiment";
 
 export const RUNTIME_PERSISTENCE_MESSAGE = "shepherd-lens-runtime-persistence";
+export { MAX_PERSISTED_FEED_ITEMS } from "./runtime-schema";
 
 export type RuntimeStoredState = {
   experiments: UserExperimentState;
@@ -78,9 +85,8 @@ export function isRuntimePersistenceRequest(
   }
 
   if (
-    !isString(value.url) ||
-    !Array.isArray(value.feedItems) ||
-    !value.feedItems.every(isFeedItem)
+    !isBoundedString(value.url, MAX_PERSISTED_URL_LENGTH) ||
+    !isPersistableFeedItems(value.feedItems)
   ) {
     return false;
   }
@@ -95,6 +101,6 @@ export function isRuntimePersistenceRequest(
   return (
     value.operation === "start-experiment" &&
     isExperimentKind(value.kind) &&
-    isString(value.note)
+    isBoundedString(value.note, MAX_PERSISTED_NOTE_LENGTH)
   );
 }
