@@ -10,6 +10,7 @@ import {
 } from "@playwright/test";
 
 const extensionPath = path.join(process.cwd(), "extension-dist");
+const proxyServer = process.env.SHEPHERD_LENS_E2E_PROXY_SERVER?.trim();
 
 test("injects, observes SPA navigation, and synchronizes supported tabs", async () => {
   const userDataDir = await mkdtemp(path.join(tmpdir(), "shepherd-lens-e2e-"));
@@ -19,6 +20,7 @@ test("injects, observes SPA navigation, and synchronizes supported tabs", async 
   try {
     context = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
+      proxy: proxyServer ? { server: proxyServer } : undefined,
       args: [
         `--disable-extensions-except=${extensionPath}`,
         `--load-extension=${extensionPath}`,

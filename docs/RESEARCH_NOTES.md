@@ -363,6 +363,23 @@ requires these fields in any future public study report.
 No real feed sample or independent rating has been collected. Protocol readiness must not
 be described as completed scientific validation. See `HUMAN_VALIDATION_PROTOCOL.md`.
 
+## 8. Evidence Retrieval Evaluation Baseline
+
+The backend now has a versioned offline corpus and deterministic evaluator for public-source
+retrieval. It reports precision at k, nDCG at k, reciprocal rank, category accuracy,
+provider-status consistency, and language/provider slices. Empty and failed providers use
+explicit insufficient-data states instead of being silently converted into relevance scores.
+
+This baseline is useful for contract and metric regression because it is bounded, bilingual,
+reviewable, and independent from network availability. It is not scientific validation:
+the candidate judgments are authored inside the project, the corpus is small, and static
+fixtures cannot estimate live index coverage, freshness, or relevance for real user queries.
+
+The next evidence study should freeze a sampled set of live query-result snapshots, define
+inclusion and exclusion rules, collect independent blinded relevance and category labels,
+report agreement and uncertainty, and retain provider failures as observed outcomes. Only
+after that study should reranking or Evidence Confidence Index components be compared.
+
 Correct architecture:
 
 ```text

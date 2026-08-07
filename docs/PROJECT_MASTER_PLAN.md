@@ -819,6 +819,39 @@ Reference:
 
 ---
 
+## Evidence Retrieval Evaluation Gate After Stage 13
+
+Goal:
+Create an auditable engineering relevance baseline before connecting the extension to the
+backend, introducing rerankers, or calculating stronger evidence metrics.
+
+Status:
+Complete as a deterministic offline engineering baseline. Scientific retrieval validation
+and live-provider monitoring remain pending.
+
+Implemented:
+
+* strict versioned English and Chinese evaluation contracts
+* bounded ordinal relevance judgments with explicit rationales
+* safe-link, duplicate, provider, category, and result-count validation before scoring
+* per-case and aggregate precision at k, nDCG at k, reciprocal rank, category accuracy,
+  and provider-status consistency
+* English, Chinese, Crossref, and Wikipedia slices
+* explicit insufficient-data states for empty or failed retrieval
+* machine-readable JSON CLI and deterministic pytest coverage
+
+Still required before stronger evidence claims:
+
+* sampled live-provider query-result snapshots with documented inclusion criteria
+* independent blinded relevance and source-category judgments
+* agreement, uncertainty intervals, temporal freshness, and coverage analysis
+* separate operational monitoring for provider latency, failures, and response drift
+
+The hand-authored corpus is not a truth dataset, Evidence Confidence Index calibration, or
+evidence that retrieval quality generalizes to real feeds.
+
+---
+
 ## Stage 14: Open-Source Interpretation Layer
 
 Goal:
@@ -937,6 +970,7 @@ Current priority after the Stage 13 engineering and protocol validation gates:
 
 ```text
 consented independently labeled pilot dataset
+-> independently reviewed live evidence-retrieval dataset
 -> evidence-retrieval and evidence-metric validation
 -> explicit-consent extension transport, if research value justifies it
 -> evidence-backed reflection over time
@@ -950,8 +984,10 @@ disconnected and GDELT backend retrieval remains deferred.
 The next research task should execute a small consented pilot using the documented
 protocol, then report missingness, agreement, uncertainty, disagreement, and held-out
 limitations before model-generated interpretation is presented as more than exploratory.
-The next engineering work should validate retrieval relevance, failure behavior, and source
-categories before considering an explicit-consent extension transport. Deployment-grade
+The offline retrieval baseline now validates contracts, deterministic metrics, failure
+semantics, and source categories against a small hand-authored bilingual corpus. The next
+research work must test those measures on frozen live-provider snapshots with independent
+reviewers before considering an explicit-consent extension transport. Deployment-grade
 authentication, distributed rate limiting, shared caching, and privacy controls remain
 separate prerequisites for any hosted backend.
 Evidence Confidence Index scoring should remain deferred until its components have a

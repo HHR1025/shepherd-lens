@@ -360,6 +360,19 @@ Optional backend follow-up:
 The backend does not duplicate GDELT retrieval yet. That provider remains in the extension
 path until its backend response and operational behavior are validated independently.
 
+Evaluation baseline status:
+
+* a versioned English and Chinese offline corpus covers relevant, partially relevant,
+  irrelevant, empty, timeout, error, ranking-error, and category-error cases
+* strict validation rejects unsafe links, duplicate identifiers and URLs, unsupported
+  providers, impossible provider counts, and malformed judgments before scoring
+* deterministic reports expose precision at k, nDCG at k, reciprocal rank, category
+  accuracy, provider-status consistency, and language/provider slices
+* the JSON CLI is suitable for regression tracking without live network access
+
+This is an engineering relevance baseline only. The judgments are maintained by the
+project and therefore do not establish live-provider quality or scientific validity.
+
 ### Phase 2
 
 * Evidence Confidence Index
@@ -368,6 +381,10 @@ path until its backend response and operational behavior are validated independe
 * citation visibility detection
 * basic entity and claim-like phrase extraction
 * open-source reranking where needed
+
+Phase 2 must not begin with an Evidence Confidence Index assembled from unvalidated
+components. First expand the baseline with independently reviewed query-result judgments,
+sampled live-provider runs, uncertainty intervals, and documented inclusion criteria.
 
 ### Phase 3
 

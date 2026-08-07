@@ -167,6 +167,9 @@ Files:
 * `backend/shepherd_lens_api/adapters.py`
 * `backend/shepherd_lens_api/evidence_adapters.py`
 * `backend/shepherd_lens_api/evidence.py`
+* `backend/shepherd_lens_api/evidence_evaluation.py`
+* `backend/shepherd_lens_api/evidence_evaluation_corpus.py`
+* `backend/shepherd_lens_api/evidence_evaluation_cli.py`
 
 Responsibilities:
 
@@ -179,6 +182,8 @@ Responsibilities:
 * isolate provider errors and timeouts while preserving partial results
 * expose provider state and bounded elapsed-time observations without logging queries
 * cache non-total-failure retrieval results in a bounded process-local TTL cache
+* validate a versioned offline bilingual relevance corpus before scoring
+* report deterministic ranking, category, provider-state, language, and provider slices
 * remain optional and independent of extension runtime behavior
 
 The analysis API route remains a thin adapter over the pure analysis engine. The separate
@@ -191,6 +196,20 @@ Backend retrieval deliberately supports Crossref and Wikipedia first. GDELT rema
 extension-only path until its backend response and operational behavior are independently
 validated. The in-memory cache is a development safeguard, not a distributed production
 control.
+
+The evaluation path is separate from request handling and live provider calls:
+
+```text
+versioned static corpus
+-> strict Pydantic validation
+-> pure deterministic evaluator
+-> per-case and aggregate JSON report
+```
+
+Its hand-authored judgments are regression expectations, not scientific ground truth.
+Live-provider monitoring and independently reviewed relevance judgments remain separate
+research tasks. Invalid URLs, duplicate candidates, impossible provider counts, and unknown
+contract fields are rejected before metrics are calculated.
 
 ### Presentation Layer
 
@@ -259,6 +278,7 @@ Python backend changes also require:
 
 Ruff
 -> pytest
+-> offline evidence evaluation CLI
 ```
 
 GitHub Actions runs independent Node and Python verification jobs on pushes to `main`

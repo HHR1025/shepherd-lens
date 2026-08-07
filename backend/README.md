@@ -46,6 +46,26 @@ A discovered link is not proof that a claim is supported. An empty result does n
 that no evidence exists. GDELT backend retrieval remains deferred while the extension's
 existing GDELT integration is evaluated separately.
 
+## Offline Retrieval Evaluation
+
+The backend includes a versioned bilingual engineering baseline for normalized evidence
+results. It validates candidate identifiers, safe and unique URLs, provider result counts,
+ordinal relevance judgments, expected categories, and expected provider states before
+scoring. The deterministic report contains precision at k, nDCG at k, reciprocal rank,
+category accuracy, provider-status consistency, and English, Chinese, Crossref, and
+Wikipedia slices.
+
+Run the baseline and emit JSON:
+
+```bash
+python -m shepherd_lens_api.evidence_evaluation_cli --k 3
+```
+
+The static corpus is intentionally independent from live network responses so it can run
+in CI. It is an engineering regression fixture, not independently labeled ground truth.
+It does not measure live provider coverage, freshness, or population-level relevance and
+must not be used as an Evidence Confidence Index or truth score.
+
 ## Evidence Retrieval Controls
 
 Defaults can be changed only within enforced bounds:

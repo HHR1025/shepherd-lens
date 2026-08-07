@@ -18,6 +18,8 @@ It extracts recommendations currently visible in YouTube's DOM, calculates trans
 - Optional FastAPI contract for deterministic, traceable interpretation of supplied measurements
 - Optional FastAPI public retrieval endpoint with bounded Crossref and Wikipedia adapters
 - Provider timeout isolation, status metadata, and bounded in-memory retrieval caching
+- Versioned bilingual offline evidence-retrieval evaluation with deterministic ranking,
+  category, provider-state, and language-slice reports
 - Versioned bilingual engineering calibration fixtures for every current local measurement
 - Blinded human-annotation study contract with deterministic multi-rater reliability reporting
 - English and Chinese interface copy
@@ -32,6 +34,9 @@ The synthetic calibration corpus is an engineering regression baseline, not a
 ground-truth dataset or evidence of scientific validity.
 The human-validation protocol and analysis toolkit are ready, but no independent
 human study or real-feed validation dataset has been completed.
+The evidence-retrieval evaluation corpus is also a hand-authored engineering baseline.
+It detects scoring and contract regressions but does not establish live-provider relevance,
+coverage, freshness, or scientific validity.
 The sidebar exposes sample width, page context, history depth and recency, and extraction
 freshness so users can see why an observation is limited.
 
@@ -79,6 +84,12 @@ optional explicit evidence query
 -> isolated Crossref and Wikipedia adapters
 -> bounded cache and provider observations
 -> categorized discovery links
+
+offline evidence fixtures
+-> strict evaluation contract
+-> precision@k / nDCG@k / reciprocal rank
+-> category, provider, and language slices
+-> machine-readable regression report
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries.
@@ -131,6 +142,7 @@ cd backend
 python -m pip install -e ".[dev]"
 python -m ruff check .
 python -m pytest
+python -m shepherd_lens_api.evidence_evaluation_cli --k 3
 ```
 
 Install the browser runtime once with `npx playwright install chromium`. The extension
@@ -139,6 +151,13 @@ checks sidebar injection, visible-feed extraction, watch/Shorts SPA navigation, 
 host prevention, public-source retrieval messaging, multi-tab injection, and live
 browser-storage synchronization. Run it before a release; it remains separate from the
 fast deterministic CI gate.
+
+When the test browser requires an explicit local proxy, configure only the E2E process:
+
+```powershell
+$env:SHEPHERD_LENS_E2E_PROXY_SERVER="http://127.0.0.1:7890"
+npm run test:extension:e2e
+```
 
 ## Privacy
 
